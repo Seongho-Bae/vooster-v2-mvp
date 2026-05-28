@@ -1,0 +1,103 @@
+{
+  "goal": "vspec local-first MVP",
+  "spec": "GOAL.md",
+  "updated_at": "2026-05-28",
+  "status_legend": ["todo", "doing", "done", "blocked"],
+  "phases": [
+    {
+      "id": "P0",
+      "title": "Scaffold",
+      "status": "todo",
+      "gate": "pnpm test green (envelope builders); `vspec --help` exits 0",
+      "tasks": [
+        { "id": "P0-T1", "title": "Init package (package.json, tsconfig, deps: commander/gray-matter/zod + dev vitest/prettier/tsx)", "status": "todo" },
+        { "id": "P0-T2", "title": "Wire commander CLI entry (src/cli.ts) with --help/--version", "status": "todo" },
+        { "id": "P0-T3", "title": "Domain types (src/domain/types.ts) for 4 entities + ParsedUseCase", "status": "todo" },
+        { "id": "P0-T4", "title": "Agent envelope builders (src/envelope.ts) + unit tests", "status": "todo" }
+      ]
+    },
+    {
+      "id": "P1",
+      "title": "Parser / serializer with round-trip",
+      "status": "todo",
+      "gate": "for every fixture F: serialize(parse(F))===normalize(F) AND normalize(normalize(F))===normalize(F)",
+      "tasks": [
+        { "id": "P1-T1", "title": "Frontmatter parse/stringify (gray-matter) + zod schemas, fixed key order", "status": "todo" },
+        { "id": "P1-T2", "title": "Body parser: blurb/interests/preconditions/trigger/steps/extensions/guarantees/notes", "status": "todo" },
+        { "id": "P1-T3", "title": "Serializer: canonical order, renumbered steps, single trailing newline", "status": "todo" },
+        { "id": "P1-T4", "title": "normalize() + idempotence", "status": "todo" },
+        { "id": "P1-T5", "title": "Fixture corpus (tests/fixtures/usecases/) covering edge cases", "status": "todo" }
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "doctor (offline validation)",
+      "status": "todo",
+      "gate": "one red fixture per error rule + a clean fixture passes; `vspec doctor` on clean dir exits 0",
+      "tasks": [
+        { "id": "P2-T1", "title": "Validation engine: one check per Cockburn rule, findings {rule,level,message,location}", "status": "todo" },
+        { "id": "P2-T2", "title": "Cross-reference checks (primary_actor, step actors, stakeholders resolve to files)", "status": "todo" },
+        { "id": "P2-T3", "title": "format-aware required-field enforcement (error@FULLY_DRESSED, warn otherwise)", "status": "todo" },
+        { "id": "P2-T4", "title": "vspec doctor [KEY|path] command + agent envelope (VALIDATION_FAILED)", "status": "todo" }
+      ]
+    },
+    {
+      "id": "P3",
+      "title": "Use-case authoring (dogfood loop core)",
+      "status": "todo",
+      "gate": "e2e: init -> usecase create -> file round-trips and doctor reports no errors",
+      "tasks": [
+        { "id": "P3-T1", "title": "vspec init [--key]: write .vspec/config.json + specs/ subdirs, idempotent", "status": "todo" },
+        { "id": "P3-T2", "title": "vspec usecase create: allocate key, slug, BRIEF skeleton, honor --from", "status": "todo" },
+        { "id": "P3-T3", "title": "vspec usecase list / show from files", "status": "todo" },
+        { "id": "P3-T4", "title": "Key allocation helper (src/keys.ts) shared by usecase & goal", "status": "todo" }
+      ]
+    },
+    {
+      "id": "P4",
+      "title": "Actors, stakeholders, goals + convenience mutators",
+      "status": "todo",
+      "gate": "e2e: build a FULLY_DRESSED use case entirely via CLI; doctor exits 0 with no warnings",
+      "tasks": [
+        { "id": "P4-T1", "title": "actor & stakeholder create/list/show (file CRUD, ALREADY_EXISTS guard)", "status": "todo" },
+        { "id": "P4-T2", "title": "goal create/list/show/promote/reject (promote links + creates use case)", "status": "todo" },
+        { "id": "P4-T3", "title": "usecase set + add-stakeholder (re-serialize through normalize)", "status": "todo" },
+        { "id": "P4-T4", "title": "scenario add + step add/edit on the use-case body", "status": "todo" }
+      ]
+    },
+    {
+      "id": "P5",
+      "title": "Agent envelope across commands + ai-guide",
+      "status": "todo",
+      "gate": "each command's --format=agent emits a valid envelope with non-empty suggested_next_actions; KEY_NOT_FOUND path returns right code + recovery",
+      "tasks": [
+        { "id": "P5-T1", "title": "Thread --format through every command; map errors to stable codes", "status": "todo" },
+        { "id": "P5-T2", "title": "Populate suggested_next_actions (success + error) per cli-spec examples", "status": "todo" },
+        { "id": "P5-T3", "title": "vspec ai-guide: end-to-end authoring walkthrough", "status": "todo" }
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Gherkin export",
+      "status": "todo",
+      "gate": "golden-file test: fixture use case renders byte-for-byte to expected .feature",
+      "tasks": [
+        { "id": "P6-T1", "title": "Gherkin renderer (Feature/Background/Main/Extensions/outcome)", "status": "todo" },
+        { "id": "P6-T2", "title": "vspec export gherkin <KEY> [--output]; agent envelope with affected_files", "status": "todo" }
+      ]
+    },
+    {
+      "id": "P7",
+      "title": "Dogfooding",
+      "status": "todo",
+      "gate": "vspec doctor exits 0 over specs/; every file round-trips; a .feature per use case; fresh-agent task succeeds",
+      "tasks": [
+        { "id": "P7-T1", "title": "vspec init --key VSPEC at repo root", "status": "todo" },
+        { "id": "P7-T2", "title": "Author >=5 real use cases for this project (+ referenced actors/stakeholders)", "status": "todo" },
+        { "id": "P7-T3", "title": "vspec doctor over whole tree exits 0", "status": "todo" },
+        { "id": "P7-T4", "title": "vspec export gherkin <KEY> for each", "status": "todo" },
+        { "id": "P7-T5", "title": "Fresh-agent check: author one use case from only `vspec ai-guide`", "status": "todo" }
+      ]
+    }
+  ]
+}
