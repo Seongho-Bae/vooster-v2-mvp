@@ -22,12 +22,12 @@ function run(...args: string[]): string {
 }
 
 function apply(input: string, ...args: string[]): { status: string; warnings: { message: string }[] } {
-  return JSON.parse(execFileSync(tsx, [cli, "usecase", "apply", ...args, "--format", "agent"], { cwd: root, encoding: "utf8", input }));
+  return JSON.parse(execFileSync(tsx, [cli, "usecase", "apply", ...args], { cwd: root, encoding: "utf8", input }));
 }
 
 function applyError(input: string, ...args: string[]): { error?: { code: string; message: string } } {
   try {
-    execFileSync(tsx, [cli, "usecase", "apply", ...args, "--format", "agent"], { cwd: root, encoding: "utf8", input });
+    execFileSync(tsx, [cli, "usecase", "apply", ...args], { cwd: root, encoding: "utf8", input });
     throw new Error("expected command to fail");
   } catch (error) {
     return JSON.parse((error as { stdout: Buffer }).stdout.toString());

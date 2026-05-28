@@ -31,13 +31,13 @@ describe("agent format across commands", () => {
     const cli = join(repoRoot, "src/cli.ts");
     mkdirSync(root, { recursive: true });
     const run = (...args: string[]) => {
-      const output = execFileSync(tsx, [cli, ...args, "--format", "agent"], { cwd: root, encoding: "utf8" });
+      const output = execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" });
       const envelope = envelopeSchema.parse(JSON.parse(output));
       expect(envelope.status).toBe("ok");
       return envelope;
     };
     const apply = (input: string, ...args: string[]) => {
-      const output = execFileSync(tsx, [cli, ...args, "--format", "agent"], { cwd: root, encoding: "utf8", input });
+      const output = execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8", input });
       const envelope = envelopeSchema.parse(JSON.parse(output));
       expect(envelope.status).toBe("ok");
       return envelope;
@@ -84,7 +84,7 @@ describe("agent format across commands", () => {
     mkdirSync(root, { recursive: true });
     execFileSync(tsx, [cli, "init", "--key", "VSPEC"], { cwd: root });
     try {
-      execFileSync(tsx, [cli, "usecase", "show", "VSPEC-404", "--format", "agent"], { cwd: root, encoding: "utf8" });
+      execFileSync(tsx, [cli, "usecase", "show", "VSPEC-404"], { cwd: root, encoding: "utf8" });
       throw new Error("expected command to fail");
     } catch (error) {
       const stdout = (error as { stdout: Buffer }).stdout.toString();
@@ -95,5 +95,34 @@ describe("agent format across commands", () => {
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+
+  it("re-emits commander parse errors (removed --format, unknown options) as a self-teaching envelope", () => {
+    const root = join(tmpdir(), `vspec-noformat-${crypto.randomUUID()}`);
+    const repoRoot = resolve(import.meta.dirname, "..");
+    const tsx = join(repoRoot, "node_modules/.bin/tsx");
+    const cli = join(repoRoot, "src/cli.ts");
+    mkdirSync(root, { recursive: true });
+    execFileSync(tsx, [cli, "init", "--key", "VSPEC"], { cwd: root });
+
+    const expectError = (...args: string[]) => {
+      try {
+        execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" });
+        throw new Error("expected command to fail");
+      } catch (error) {
+        return envelopeSchema.parse(JSON.parse((error as { stdout: Buffer }).stdout.toString()));
+      }
+    };
+
+    const fmt = expectError("doctor", "--format", "agent");
+    expect(fmt.status).toBe("error");
+    expect(fmt.error?.code).toBe("INVALID_ARGUMENT");
+    expect(fmt.error?.message).toMatch(/--format/);
+
+    const unknown = expectError("stakeholder", "create", "--name", "x", "--interest", "y");
+    expect(unknown.status).toBe("error");
+    expect(unknown.error?.code).toBe("INVALID_ARGUMENT");
+
+    rmSync(root, { recursive: true, force: true });
   });
 });

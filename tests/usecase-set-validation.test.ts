@@ -21,7 +21,7 @@ function run(...args: string[]): string {
 
 function errorEnvelope(...args: string[]): { error?: { code: string; message: string } } {
   try {
-    execFileSync(tsx, [cli, ...args, "--format", "agent"], { cwd: root, encoding: "utf8" });
+    execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" });
     throw new Error("expected command to fail");
   } catch (error) {
     return JSON.parse((error as { stdout: Buffer }).stdout.toString());
@@ -46,7 +46,7 @@ describe("usecase set validates the value before writing", () => {
     // The file must be byte-for-byte unchanged — no corrupt `status: READY` written.
     expect(readFileSync(ucPath(), "utf8")).toBe(before);
     // And every later command still loads it cleanly.
-    expect(run("doctor", "VSPEC-001", "--format", "human")).toContain("No errors");
+    expect(JSON.parse(run("doctor", "VSPEC-001")).status).toBe("ok");
   });
 
   it("rejects an unknown field and lists settable fields", () => {
@@ -56,7 +56,7 @@ describe("usecase set validates the value before writing", () => {
   });
 
   it("accepts a valid enum value", () => {
-    const out = run("usecase", "set", "VSPEC-001", "--field", "format", "--value", "FULLY_DRESSED", "--format", "agent");
+    const out = run("usecase", "set", "VSPEC-001", "--field", "format", "--value", "FULLY_DRESSED");
     expect(JSON.parse(out).status).toBe("ok");
     expect(readFileSync(ucPath(), "utf8")).toContain("format: FULLY_DRESSED");
   });

@@ -16,11 +16,16 @@ function setup(): string {
 }
 
 function run(root: string, ...args: string[]): { status: string; data: unknown; warnings: { message: string }[]; suggested_next_actions: { command: string }[] } {
-  return JSON.parse(execFileSync(tsx, [cli, ...args, "--format", "agent"], { cwd: root, encoding: "utf8" }));
+  return JSON.parse(execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" }));
 }
 
-function runHuman(root: string, ...args: string[]): string {
-  return execFileSync(tsx, [cli, ...args, "--format", "human"], { cwd: root, encoding: "utf8" });
+function runExpectingError(root: string, ...args: string[]): { status: string; suggested_next_actions: { command: string }[] } {
+  try {
+    execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" });
+    throw new Error("expected command to fail");
+  } catch (error) {
+    return JSON.parse((error as { stdout: Buffer }).stdout.toString());
+  }
 }
 
 describe("agent guidance signals", () => {
@@ -33,7 +38,7 @@ describe("agent guidance signals", () => {
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
 
-  it("doctor reports a summary and nudges to review warnings", () => {
+  it("doctor reports a summary and surfaces warnings to review", () => {
     const root = setup();
     const created = run(root, "usecase", "create", "--title", "사용자 계정 등록", "--primary-actor", "user").data as { key: string };
     const report = run(root, "doctor", created.key);
@@ -41,28 +46,22 @@ describe("agent guidance signals", () => {
     const summary = (report.data as { summary: { errors: number; warnings: number } }).summary;
     expect(summary.errors).toBe(0);
     expect(summary.warnings).toBeGreaterThan(0);
-    expect(report.suggested_next_actions.some((a) => /--format=human/.test(a.command))).toBe(true);
+    expect(report.warnings.length).toBeGreaterThan(0);
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
 
-  it("human format still surfaces the apply nudge after create", () => {
+  it("surfaces the apply nudge in suggested_next_actions after create", () => {
     const root = setup();
-    const out = runHuman(root, "usecase", "create", "--title", "사용자 계정을 등록한다", "--primary-actor", "user");
-    expect(out).toMatch(/Next:/);
-    expect(out).toMatch(/usecase apply VSPEC-001 --section main-success/);
+    const created = run(root, "usecase", "create", "--title", "사용자 계정을 등록한다", "--primary-actor", "user");
+    expect(created.suggested_next_actions.some((a) => /usecase apply VSPEC-001 --section main-success/.test(a.command))).toBe(true);
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
 
-  it("human format surfaces next actions on error too", () => {
+  it("surfaces recovery next actions on error too", () => {
     const root = setup();
-    let stderr = "";
-    try {
-      execFileSync(tsx, [cli, "usecase", "show", "VSPEC-404", "--format", "human"], { cwd: root, encoding: "utf8" });
-    } catch (error) {
-      stderr = (error as { stderr: string }).stderr;
-    }
-    expect(stderr).toMatch(/Next:/);
-    expect(stderr).toMatch(/usecase list/);
+    const env = runExpectingError(root, "usecase", "show", "VSPEC-404");
+    expect(env.status).toBe("error");
+    expect(env.suggested_next_actions.some((a) => /usecase list/.test(a.command))).toBe(true);
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
 });

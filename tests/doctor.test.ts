@@ -77,7 +77,7 @@ describe("doctor validation", () => {
     const cli = join(import.meta.dirname, "../src/cli.ts");
     let stdout = "";
     try {
-      stdout = execFileSync(tsx, [cli, "doctor", "--format", "agent"], { cwd: root, encoding: "utf8" });
+      stdout = execFileSync(tsx, [cli, "doctor"], { cwd: root, encoding: "utf8" });
     } catch (error) {
       stdout = (error as { stdout: string }).stdout;
     }
@@ -99,11 +99,13 @@ describe("doctor validation", () => {
   });
 
   it("cli exits 0 on the clean fixture dir", () => {
-    const output = execFileSync("pnpm", ["exec", "tsx", join(import.meta.dirname, "../src/cli.ts"), "doctor", "--format", "human"], {
+    const output = execFileSync("pnpm", ["exec", "tsx", join(import.meta.dirname, "../src/cli.ts"), "doctor"], {
       cwd: cleanRoot,
       encoding: "utf8",
     });
-    expect(output).toContain("No errors");
+    const envelope = JSON.parse(output) as { status: string; data: { summary: { errors: number } } };
+    expect(envelope.status).toBe("ok");
+    expect(envelope.data.summary.errors).toBe(0);
   });
 });
 

@@ -10,7 +10,7 @@ const cli = join(repoRoot, "src/cli.ts");
 
 function runExpectingError(root: string, args: string[]): string {
   try {
-    execFileSync(tsx, [cli, ...args, "--format", "agent"], { cwd: root, encoding: "utf8" });
+    execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" });
     throw new Error("expected command to fail");
   } catch (error) {
     return (error as { stdout: Buffer }).stdout.toString();

@@ -33,10 +33,10 @@ describe("use-case authoring loop", () => {
     execFileSync(tsx, [cli, "init", "--key", "VSPEC"], { cwd: root });
     const output = execFileSync(
       tsx,
-      [cli, "usecase", "create", "--title", "Author a use case", "--primary-actor", "developer", "--format", "human"],
+      [cli, "usecase", "create", "--title", "Author a use case", "--primary-actor", "developer"],
       { cwd: root, encoding: "utf8" },
     );
-    const key = output.trim().split(/\s+/)[0]!;
+    const key = (JSON.parse(output) as { data: { key: string } }).data.key;
     const file = readFileSync(join(root, "specs/usecases/VSPEC-001-author-a-use-case.md"), "utf8");
     expect(serializeUseCase(parseUseCaseMarkdown(file))).toBe(normalizeUseCaseMarkdown(file));
     expect(runDoctor({ root, target: key }).findings.filter((finding) => finding.level === "error")).toEqual([]);
