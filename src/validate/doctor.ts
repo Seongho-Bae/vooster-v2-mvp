@@ -2,7 +2,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { statSync } from "node:fs";
 import { ZodError } from "zod";
-import { parseMatter, parseStakeholderFrontmatter } from "../format/frontmatter.js";
 import { parseUseCaseMarkdown } from "../format/parse.js";
 import { displayToSlug } from "../slug.js";
 import { findUseCaseFile, relativePath, walkFiles } from "../files.js";
@@ -24,7 +23,8 @@ export function runDoctor(args: { root?: string; target?: string }): DoctorResul
   const root = resolve(args.root ?? process.cwd());
   const files = resolveTargets(root, args.target);
   const findings: Finding[] = [];
-  const stakeholderRefs = readStakeholderRefs(root);
+  const actorRefs = readSlugSet(root, "specs/actors");
+  const stakeholderRefs = readSlugSet(root, "specs/stakeholders");
   const glossary = readGlossary(root);
 
   if (args.target && files.length === 0) {
@@ -55,7 +55,7 @@ export function runDoctor(args: { root?: string; target?: string }): DoctorResul
       });
       continue;
     }
-    findings.push(...validateUseCase({ root, file, useCase: parsed, stakeholderRefs, glossary }));
+    findings.push(...validateUseCase({ root, file, useCase: parsed, actorRefs, stakeholderRefs, glossary }));
   }
 
   return { findings, files: files.map((file) => relativePath(file, root)) };
@@ -79,13 +79,14 @@ function validateUseCase(args: {
   root: string;
   file: string;
   useCase: ParsedUseCase;
+  actorRefs: Set<string>;
   stakeholderRefs: Set<string>;
   glossary: Glossary;
 }): Finding[] {
-  const { root, file, useCase, stakeholderRefs, glossary } = args;
+  const { root, file, useCase, actorRefs, stakeholderRefs, glossary } = args;
   const location = relativePath(file, root);
   const findings: Finding[] = [];
-  const actorExists = (name: string) => existsSync(join(root, "specs/actors", `${displayToSlug(name)}.md`));
+  const actorExists = (name: string) => actorRefs.has(displayToSlug(name));
   const requiredLevel = useCase.frontmatter.format === "FULLY_DRESSED" ? "error" : "warn";
 
   if (useCase.stakeholderInterests.length === 0) {
@@ -105,7 +106,7 @@ function validateUseCase(args: {
     }
   }
   for (const item of useCase.stakeholderInterests) {
-    if (!stakeholderRefs.has(item.stakeholder) && !stakeholderRefs.has(displayToSlug(item.stakeholder))) {
+    if (!stakeholderRefs.has(displayToSlug(item.stakeholder))) {
       findings.push(error("stakeholder-reference-exists", `Stakeholder ${item.stakeholder} does not exist.`, location));
     }
   }
@@ -250,18 +251,10 @@ function addRequiredFieldFinding(
   if (!present) findings.push({ rule: "required-field", level, message: `${field} is required.`, location });
 }
 
-function readStakeholderRefs(root: string): Set<string> {
+function readSlugSet(root: string, dir: string): Set<string> {
   const refs = new Set<string>();
-  for (const file of walkFiles(join(root, "specs/stakeholders"), (path) => path.endsWith(".md"))) {
+  for (const file of walkFiles(join(root, dir), (path) => path.endsWith(".md"))) {
     refs.add(basename(file, ".md"));
-    try {
-      const fm = parseStakeholderFrontmatter(parseMatter(readFileSync(file, "utf8")).data);
-      refs.add(fm.name);
-      refs.add(fm.display_name);
-      refs.add(displayToSlug(fm.display_name));
-    } catch {
-      refs.add(basename(file, ".md"));
-    }
   }
   return refs;
 }

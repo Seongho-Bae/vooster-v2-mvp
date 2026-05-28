@@ -32,6 +32,24 @@ describe("doctor validation", () => {
     rmSync(root, { recursive: true, force: true });
   });
 
+  it("requires actor references to use the slug name, not the display name", () => {
+    const root = makeFixtureRoot(
+      readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**developer** requests", "**개발자** requests"),
+    );
+    const result = runDoctor({ root });
+    expect(result.findings.some((finding) => finding.rule === "step-actor-exists" && finding.level === "error")).toBe(true);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  it("requires stakeholder references to use the slug name, not the display name", () => {
+    const root = makeFixtureRoot(
+      readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**Vooster**", "**부스터**"),
+    );
+    const result = runDoctor({ root });
+    expect(result.findings.some((finding) => finding.rule === "stakeholder-reference-exists" && finding.level === "error")).toBe(true);
+    rmSync(root, { recursive: true, force: true });
+  });
+
   it("warns for lower maturity required fields without failing", () => {
     const text = readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8")
       .replace("format: FULLY_DRESSED", "format: BRIEF")
