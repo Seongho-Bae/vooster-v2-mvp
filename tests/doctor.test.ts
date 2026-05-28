@@ -69,6 +69,27 @@ describe("doctor validation", () => {
     rmSync(root, { recursive: true, force: true });
   });
 
+  it("names the exact slug when a reference uses a known (Korean) display name", () => {
+    const root = join(tmpdir(), `vspec-display-ref-${crypto.randomUUID()}`);
+    mkdirSync(join(root, "specs/actors"), { recursive: true });
+    mkdirSync(join(root, "specs/stakeholders"), { recursive: true });
+    mkdirSync(join(root, "specs/usecases"), { recursive: true });
+    writeFileSync(join(root, "specs/actors/developer.md"), readFileSync(join(cleanRoot, "specs/actors/developer.md")));
+    writeFileSync(join(root, "specs/actors/system.md"), readFileSync(join(cleanRoot, "specs/actors/system.md")));
+    writeFileSync(
+      join(root, "specs/stakeholders/reader-community.md"),
+      "---\nvspec_format: 1\ntype: stakeholder\nname: reader-community\ndisplay_name: 독자 커뮤니티\nstakeholder_type: EXTERNAL\n---\n독자 커뮤니티 stakeholder.\n",
+    );
+    writeFileSync(
+      join(root, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+      readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**Vooster**", "**독자 커뮤니티**"),
+    );
+    const finding = runDoctor({ root }).findings.find((f) => f.rule === "stakeholder-reference-exists");
+    expect(finding?.message).toContain("is a display name");
+    expect(finding?.message).toContain("reference the slug `reader-community`");
+    rmSync(root, { recursive: true, force: true });
+  });
+
   it("suggests listing existing slugs, never a broken --name create from a display name", () => {
     const root = makeFixtureRoot(
       readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**Vooster**", "**부스터**"),

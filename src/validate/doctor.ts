@@ -3,9 +3,15 @@ import { basename, join, resolve } from "node:path";
 import { statSync } from "node:fs";
 import { ZodError } from "zod";
 import { parseUseCaseMarkdown } from "../format/parse.js";
+import { parseMatter } from "../format/frontmatter.js";
 import { displayToSlug } from "../slug.js";
 import { findUseCaseFile, relativePath, walkFiles } from "../files.js";
 import type { ParsedUseCase } from "../domain/types.js";
+
+// A reference is always the entity's slug. We also index display_name -> slug so a
+// miss can name the exact slug when an agent wrote the display name (the common
+// ko-default mistake: a Korean display name slugifies to empty and never matches).
+type EntityIndex = { slugs: Set<string>; byDisplay: Map<string, string> };
 
 export type Finding = {
   rule: string;
@@ -23,8 +29,8 @@ export function runDoctor(args: { root?: string; target?: string }): DoctorResul
   const root = resolve(args.root ?? process.cwd());
   const files = resolveTargets(root, args.target);
   const findings: Finding[] = [];
-  const actorRefs = readSlugSet(root, "specs/actors");
-  const stakeholderRefs = readSlugSet(root, "specs/stakeholders");
+  const actors = readEntityIndex(root, "specs/actors");
+  const stakeholders = readEntityIndex(root, "specs/stakeholders");
   const glossary = readGlossary(root);
 
   if (args.target && files.length === 0) {
@@ -55,7 +61,7 @@ export function runDoctor(args: { root?: string; target?: string }): DoctorResul
       });
       continue;
     }
-    findings.push(...validateUseCase({ root, file, useCase: parsed, actorRefs, stakeholderRefs, glossary }));
+    findings.push(...validateUseCase({ root, file, useCase: parsed, actors, stakeholders, glossary }));
   }
 
   return { findings, files: files.map((file) => relativePath(file, root)) };
@@ -79,11 +85,13 @@ function validateUseCase(args: {
   root: string;
   file: string;
   useCase: ParsedUseCase;
-  actorRefs: Set<string>;
-  stakeholderRefs: Set<string>;
+  actors: EntityIndex;
+  stakeholders: EntityIndex;
   glossary: Glossary;
 }): Finding[] {
-  const { root, file, useCase, actorRefs, stakeholderRefs, glossary } = args;
+  const { root, file, useCase, actors, stakeholders, glossary } = args;
+  const actorRefs = actors.slugs;
+  const stakeholderRefs = stakeholders.slugs;
   const location = relativePath(file, root);
   const findings: Finding[] = [];
   const actorExists = (name: string) => actorRefs.has(displayToSlug(name));
@@ -96,22 +104,22 @@ function validateUseCase(args: {
     findings.push(error("main-success-has-step", "Main success scenario must have at least one step.", location));
   }
   for (const step of useCase.mainSuccess) {
-    validateStep(findings, actorRefs, "step-bold-actor-action", location, String(step.number), step.actor, step.action);
+    validateStep(findings, actors, "step-bold-actor-action", location, String(step.number), step.actor, step.action);
     validateQualityStep(findings, glossary, location, String(step.number), step.action);
   }
   for (const extension of useCase.extensions) {
     for (const step of extension.steps) {
-      validateStep(findings, actorRefs, "step-bold-actor-action", location, step.id, step.actor, step.action);
+      validateStep(findings, actors, "step-bold-actor-action", location, step.id, step.actor, step.action);
       validateQualityStep(findings, glossary, location, step.id, step.action);
     }
   }
   for (const item of useCase.stakeholderInterests) {
     if (!stakeholderRefs.has(displayToSlug(item.stakeholder))) {
-      findings.push(error("stakeholder-reference-exists", `Stakeholder ${item.stakeholder} does not exist.${refHint("stakeholder", stakeholderRefs)}`, location));
+      findings.push(error("stakeholder-reference-exists", `Stakeholder ${item.stakeholder} does not exist.${refHint("stakeholder", stakeholders, item.stakeholder)}`, location));
     }
   }
   if (!actorExists(useCase.frontmatter.primary_actor)) {
-    findings.push(error("primary-actor-exists", `Primary actor ${useCase.frontmatter.primary_actor} does not exist.${refHint("actor", actorRefs)}`, location));
+    findings.push(error("primary-actor-exists", `Primary actor ${useCase.frontmatter.primary_actor} does not exist.${refHint("actor", actors, useCase.frontmatter.primary_actor)}`, location));
   }
   const mainStepNumbers = new Set(useCase.mainSuccess.map((step, index) => step.number || index + 1));
   for (const extension of useCase.extensions) {
@@ -163,7 +171,7 @@ type Glossary = {
 
 function validateStep(
   findings: Finding[],
-  actorRefs: Set<string>,
+  actors: EntityIndex,
   rule: string,
   location: string,
   ref: string,
@@ -174,18 +182,24 @@ function validateStep(
     findings.push(error(rule, `Step ${ref} must start with a bold actor and include an action.`, location));
     return;
   }
-  if (!actorRefs.has(displayToSlug(actor))) {
-    findings.push(error("step-actor-exists", `Actor ${actor} in step ${ref} does not exist.${refHint("actor", actorRefs)}`, location));
+  if (!actors.slugs.has(displayToSlug(actor))) {
+    findings.push(error("step-actor-exists", `Actor ${actor} in step ${ref} does not exist.${refHint("actor", actors, actor)}`, location));
   }
 }
 
-// Reference errors must be self-teaching: name the valid slugs (ko-default specs
-// are referenced by their English slug, not their display name).
-function refHint(kind: "actor" | "stakeholder", refs: Set<string>): string {
-  if (refs.size === 0) {
+// Reference errors must be self-teaching: a reference is always the entity slug
+// (ko-default specs are referenced by their English slug, not their display name).
+// If the agent wrote a known display name, name the exact slug to use; otherwise
+// list the available slugs.
+function refHint(kind: "actor" | "stakeholder", index: EntityIndex, used: string): string {
+  const slug = index.byDisplay.get(used.trim().toLowerCase());
+  if (slug) {
+    return ` "${used}" is a display name — reference the slug \`${slug}\` instead (write **${slug}**).`;
+  }
+  if (index.slugs.size === 0) {
     return ` No ${kind}s exist yet — create one with \`vspec ${kind} create --name <slug>\`.`;
   }
-  return ` Available ${kind} slugs: ${[...refs].sort().join(", ")}. Reference the slug, not the display name.`;
+  return ` Available ${kind} slugs: ${[...index.slugs].sort().join(", ")}. Reference the slug, not the display name.`;
 }
 
 function validateQualityStep(findings: Finding[], glossary: Glossary, location: string, ref: string, action: string) {
@@ -260,12 +274,22 @@ function addRequiredFieldFinding(
   if (!present) findings.push({ rule: "required-field", level, message: `${field} is required.`, location });
 }
 
-function readSlugSet(root: string, dir: string): Set<string> {
-  const refs = new Set<string>();
+function readEntityIndex(root: string, dir: string): EntityIndex {
+  const slugs = new Set<string>();
+  const byDisplay = new Map<string, string>();
   for (const file of walkFiles(join(root, dir), (path) => path.endsWith(".md"))) {
-    refs.add(basename(file, ".md"));
+    const slug = basename(file, ".md");
+    slugs.add(slug);
+    try {
+      const data = parseMatter(readFileSync(file, "utf8")).data as { display_name?: unknown };
+      if (typeof data.display_name === "string" && data.display_name.trim()) {
+        byDisplay.set(data.display_name.trim().toLowerCase(), slug);
+      }
+    } catch {
+      // Unreadable entity frontmatter still contributes its slug; skip the label.
+    }
   }
-  return refs;
+  return { slugs, byDisplay };
 }
 
 function readGlossary(root: string): Glossary {
