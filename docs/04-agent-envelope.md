@@ -1,8 +1,9 @@
 # 04 — Agent Envelope (`--format=agent`)
 
-Every command, with `--format=agent`, prints a single JSON object: the **agent
-envelope**. It is the machine contract an AI agent reads to know what happened,
-what changed on disk, and what to do next. It is adapted from the original
+Every command prints a single JSON object by default: the **agent
+envelope** (`--format=agent` is the default; pass `--format=human` or
+`--format=json` to opt out). It is the machine contract an AI agent reads to
+know what happened, what changed on disk, and what to do next. It is adapted from the original
 vspec envelope v2, trimmed for a local-first tool (no branch/session/revision
 context).
 

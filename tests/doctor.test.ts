@@ -44,7 +44,7 @@ describe("doctor validation", () => {
   });
 
   it("cli exits 0 on the clean fixture dir", () => {
-    const output = execFileSync("pnpm", ["exec", "tsx", join(import.meta.dirname, "../src/cli.ts"), "doctor"], {
+    const output = execFileSync("pnpm", ["exec", "tsx", join(import.meta.dirname, "../src/cli.ts"), "doctor", "--format", "human"], {
       cwd: cleanRoot,
       encoding: "utf8",
     });

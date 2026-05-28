@@ -1,8 +1,10 @@
 # 03 — CLI Spec
 
 The binary is `vspec`. It is the only product surface. It is **agent-first**:
-every command accepts `--format=agent` and returns the envelope defined in
-`04-agent-envelope.md`. The default format is `human` (concise, readable lines).
+every command returns the envelope defined in `04-agent-envelope.md`, and
+`--format=agent` is the **default** — the agent is the primary user, so it does
+not have to pass a flag. Pass `--format=human` for concise readable lines or
+`--format=json` for the raw `data` payload.
 
 All commands operate on the **current working directory's** `specs/` tree. There
 is no network, no auth, no `--api-url`, no session, no project flag. The repo is
@@ -12,9 +14,9 @@ the project.
 
 | Flag                | Output                                                       |
 | ------------------- | ----------------------------------------------------------- |
-| `--format=human`    | Default. Short human-readable lines.                        |
+| `--format=agent`    | **Default.** The full agent envelope (`04-agent-envelope.md`).|
 | `--format=json`     | The raw `data` payload as JSON.                              |
-| `--format=agent`    | The full agent envelope (`04-agent-envelope.md`).           |
+| `--format=human`    | Short human-readable lines.                                  |
 
 Errors in `--format=agent` are returned as an envelope with `status: "error"`
 and exit code non-zero. In `human`/`json` they print a message to stderr and

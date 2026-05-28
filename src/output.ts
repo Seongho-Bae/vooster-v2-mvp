@@ -16,7 +16,7 @@ export type CommandPayload<T> = {
 };
 
 export function addFormatOption<T extends Command>(command: T): T {
-  return command.option("--format <format>", "output format: human|json|agent");
+  return command.option("--format <format>", "output format: agent|json|human (default: agent)");
 }
 
 export function outputSuccess<T>(format: OutputFormat, payload: CommandPayload<T>) {
@@ -63,9 +63,9 @@ export function outputError(format: OutputFormat, args: { code: string; message:
 }
 
 export function formatFrom(options: { format?: string } | undefined): OutputFormat {
-  const format = options?.format ?? formatFromArgv() ?? "human";
+  const format = options?.format ?? formatFromArgv() ?? "agent";
   if (format === "human" || format === "json" || format === "agent") return format;
-  return "human";
+  return "agent";
 }
 
 export function errorInfo(error: unknown): { code: string; message: string; details?: Record<string, unknown>; actions: AgentAction[] } {

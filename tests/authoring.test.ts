@@ -33,7 +33,7 @@ describe("use-case authoring loop", () => {
     execFileSync(tsx, [cli, "init", "--key", "VSPEC"], { cwd: root });
     const output = execFileSync(
       tsx,
-      [cli, "usecase", "create", "--title", "Author a use case", "--primary-actor", "developer"],
+      [cli, "usecase", "create", "--title", "Author a use case", "--primary-actor", "developer", "--format", "human"],
       { cwd: root, encoding: "utf8" },
     );
     const key = output.trim().split(/\s+/)[0]!;

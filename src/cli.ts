@@ -27,7 +27,7 @@ export function buildProgram(): Command {
     .name("vspec")
     .description("Local-first Cockburn use-case specs")
     .version("0.1.0")
-    .option("--format <format>", "output format: human|json|agent");
+    .option("--format <format>", "output format: agent|json|human (default: agent)");
 
   addFormatOption(program
     .command("init")
