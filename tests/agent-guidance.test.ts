@@ -19,6 +19,10 @@ function run(root: string, ...args: string[]): { status: string; data: unknown; 
   return JSON.parse(execFileSync(tsx, [cli, ...args, "--format", "agent"], { cwd: root, encoding: "utf8" }));
 }
 
+function runHuman(root: string, ...args: string[]): string {
+  return execFileSync(tsx, [cli, ...args, "--format", "human"], { cwd: root, encoding: "utf8" });
+}
+
 describe("agent guidance signals", () => {
   it("warns at create time when the title is not a verb phrase", () => {
     const root = setup();
@@ -38,6 +42,27 @@ describe("agent guidance signals", () => {
     expect(summary.errors).toBe(0);
     expect(summary.warnings).toBeGreaterThan(0);
     expect(report.suggested_next_actions.some((a) => /--format=human/.test(a.command))).toBe(true);
+    rmSync(root, { recursive: true, force: true });
+  }, 15_000);
+
+  it("human format still surfaces the apply nudge after create", () => {
+    const root = setup();
+    const out = runHuman(root, "usecase", "create", "--title", "사용자 계정을 등록한다", "--primary-actor", "user");
+    expect(out).toMatch(/Next:/);
+    expect(out).toMatch(/usecase apply VSPEC-001 --section main-success/);
+    rmSync(root, { recursive: true, force: true });
+  }, 15_000);
+
+  it("human format surfaces next actions on error too", () => {
+    const root = setup();
+    let stderr = "";
+    try {
+      execFileSync(tsx, [cli, "usecase", "show", "VSPEC-404", "--format", "human"], { cwd: root, encoding: "utf8" });
+    } catch (error) {
+      stderr = (error as { stderr: string }).stderr;
+    }
+    expect(stderr).toMatch(/Next:/);
+    expect(stderr).toMatch(/usecase list/);
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
 });

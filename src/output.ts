@@ -38,6 +38,8 @@ export function outputSuccess<T>(format: OutputFormat, payload: CommandPayload<T
     console.log(JSON.stringify(payload.data, null, 2));
   } else {
     console.log(payload.human ?? humanize(payload.data));
+    const nextActions = formatNextActions(payload.suggestedNextActions);
+    if (nextActions) console.log(nextActions);
   }
 }
 
@@ -58,6 +60,8 @@ export function outputError(format: OutputFormat, args: { code: string; message:
     console.error(JSON.stringify({ error: { code: args.code, message: args.message, details: args.details } }, null, 2));
   } else {
     console.error(args.message);
+    const nextActions = formatNextActions(args.actions ?? defaultActions(args.code));
+    if (nextActions) console.error(nextActions);
   }
   process.exitCode = 1;
 }
@@ -121,6 +125,14 @@ function inferAffectedFiles(data: unknown): { path: string }[] {
 function humanize(data: unknown): string {
   if (typeof data === "string") return data;
   return JSON.stringify(data, null, 2);
+}
+
+// Keep the self-teaching next steps in human output too: agents that opt into
+// --format=human still need the envelope's suggested_next_actions.
+function formatNextActions(actions: AgentAction[] | undefined): string {
+  if (!actions || actions.length === 0) return "";
+  const lines = actions.map((action) => `  → ${action.command}${action.reason ? `  (${action.reason})` : ""}`);
+  return ["Next:", ...lines].join("\n");
 }
 
 function defaultActions(code: string): AgentAction[] {
