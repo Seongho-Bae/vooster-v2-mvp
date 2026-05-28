@@ -89,14 +89,14 @@
     {
       "id": "P7",
       "title": "Dogfooding",
-      "status": "todo",
+      "status": "done",
       "gate": "vspec doctor exits 0 over specs/; every file round-trips; a .feature per use case; fresh-agent task succeeds",
       "tasks": [
-        { "id": "P7-T1", "title": "vspec init --key VSPEC at repo root", "status": "todo" },
-        { "id": "P7-T2", "title": "Author >=5 real use cases for this project (+ referenced actors/stakeholders)", "status": "todo" },
-        { "id": "P7-T3", "title": "vspec doctor over whole tree exits 0", "status": "todo" },
-        { "id": "P7-T4", "title": "vspec export gherkin <KEY> for each", "status": "todo" },
-        { "id": "P7-T5", "title": "Fresh-agent check: author one use case from only `vspec ai-guide`", "status": "todo" }
+        { "id": "P7-T1", "title": "vspec init --key VSPEC at repo root", "status": "done" },
+        { "id": "P7-T2", "title": "Author >=5 real use cases for this project (+ referenced actors/stakeholders)", "status": "done" },
+        { "id": "P7-T3", "title": "vspec doctor over whole tree exits 0", "status": "done" },
+        { "id": "P7-T4", "title": "vspec export gherkin <KEY> for each", "status": "done" },
+        { "id": "P7-T5", "title": "Fresh-agent check: author one use case from only `vspec ai-guide`", "status": "done" }
       ]
     }
   ]
