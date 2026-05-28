@@ -28,6 +28,7 @@ export function aiGuideText(): string {
     "1. 저장소 루트에서 `vspec init --key VSPEC`를 실행한다.",
     "2. 참조 actor를 `vspec actor create --name developer --display-name \"개발자\"`로 만든다.",
     "3. 참조 stakeholder를 `vspec stakeholder create --name vooster --display-name \"Vooster\"`로 만든다.",
+    "   (이해관계자의 *관심사(interest)*는 stakeholder 엔티티가 아니라 각 use case의 `vspec usecase apply <KEY> --section stakeholders`로 작성한다. `stakeholder create`에 `--interest`는 없다.)",
     "4. `vspec usecase create --title \"유스케이스를 작성한다\" --primary-actor developer`로 use case 골격을 만든다.",
     "5. 본문은 `vspec usecase apply`로 채운다 — 섹션별로 `--section`을 쓰거나, 본문 전체를 한 번에 제출한다.",
     "6. frontmatter(상태/우선순위 등 메타데이터)는 `vspec usecase set`으로 바꾼다.",
