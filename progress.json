@@ -7,13 +7,13 @@
     {
       "id": "P0",
       "title": "Scaffold",
-      "status": "todo",
+      "status": "done",
       "gate": "pnpm test green (envelope builders); `vspec --help` exits 0",
       "tasks": [
-        { "id": "P0-T1", "title": "Init package (package.json, tsconfig, deps: commander/gray-matter/zod + dev vitest/prettier/tsx)", "status": "todo" },
-        { "id": "P0-T2", "title": "Wire commander CLI entry (src/cli.ts) with --help/--version", "status": "todo" },
-        { "id": "P0-T3", "title": "Domain types (src/domain/types.ts) for 4 entities + ParsedUseCase", "status": "todo" },
-        { "id": "P0-T4", "title": "Agent envelope builders (src/envelope.ts) + unit tests", "status": "todo" }
+        { "id": "P0-T1", "title": "Init package (package.json, tsconfig, deps: commander/gray-matter/zod + dev vitest/prettier/tsx)", "status": "done" },
+        { "id": "P0-T2", "title": "Wire commander CLI entry (src/cli.ts) with --help/--version", "status": "done" },
+        { "id": "P0-T3", "title": "Domain types (src/domain/types.ts) for 4 entities + ParsedUseCase", "status": "done" },
+        { "id": "P0-T4", "title": "Agent envelope builders (src/envelope.ts) + unit tests", "status": "done" }
       ]
     },
     {
