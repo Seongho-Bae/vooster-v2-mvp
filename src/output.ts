@@ -1,6 +1,8 @@
 import type { Command } from "commander";
+import { ZodError } from "zod";
 import { buildErrorEnvelope, buildOkEnvelope } from "./envelope.js";
 import { projectKey } from "./files.js";
+import { VspecError } from "./errors.js";
 import type { AgentAction } from "./domain/types.js";
 
 export type OutputFormat = "human" | "json" | "agent";
@@ -66,7 +68,21 @@ export function formatFrom(options: { format?: string } | undefined): OutputForm
   return "human";
 }
 
-export function errorInfo(error: unknown): { code: string; message: string; actions: AgentAction[] } {
+export function errorInfo(error: unknown): { code: string; message: string; details?: Record<string, unknown>; actions: AgentAction[] } {
+  if (error instanceof VspecError) {
+    return { code: error.code, message: error.detail, actions: error.actions ?? defaultActions(error.code) };
+  }
+  if (error instanceof ZodError) {
+    const fields = [...new Set(error.issues.map((issue) => issue.path.join(".")).filter(Boolean))].join(", ");
+    return {
+      code: "INVALID_FRONTMATTER",
+      message: fields
+        ? `Frontmatter is invalid: ${fields}. Fix the field(s) so it matches the schema and re-run.`
+        : "Frontmatter does not match the use-case schema.",
+      details: { issues: error.issues },
+      actions: [{ command: "vspec ai-guide", reason: "Review the required frontmatter fields and valid enum values." }],
+    };
+  }
   const code = error instanceof Error ? error.message : "INVALID_ARGUMENT";
   if (code === "NOT_INITIALIZED") {
     return { code, message: "No .vspec/config.json found.", actions: [{ command: "vspec init", reason: "Initialize this repo." }] };

@@ -292,7 +292,7 @@ function runCommand<T>(
     outputSuccess(formatFrom(options), payload(result));
   } catch (error) {
     const info = errorInfo(error);
-    outputError(formatFrom(options), { code: info.code, message: info.message, actions: info.actions });
+    outputError(formatFrom(options), { code: info.code, message: info.message, details: info.details, actions: info.actions });
   }
 }
 
