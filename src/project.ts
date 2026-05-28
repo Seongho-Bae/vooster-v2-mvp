@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { orderActorFrontmatter, orderStakeholderFrontmatter, stringifyFrontmatter } from "./format/frontmatter.js";
 import { slugify } from "./slug.js";
+import { VspecError } from "./errors.js";
 
 export function initProject(args: { root?: string; key?: string }) {
   const root = resolve(args.root ?? process.cwd());
@@ -17,6 +18,15 @@ export function initProject(args: { root?: string; key?: string }) {
     affectedFiles.push(".vspec/config.json");
   } else {
     const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
+    // Re-init must not silently keep a different key. Renaming the prefix would
+    // mean renaming every key, file, and reference, which vspec does not do — so
+    // a mismatching --key is a self-teaching error, not a no-op.
+    if (args.key !== undefined && prefix !== config.key_prefix) {
+      throw new VspecError(
+        "ALREADY_INITIALIZED",
+        `This repo is already initialized with key prefix "${config.key_prefix}". Run vspec init without --key to keep it; vspec does not rename an existing prefix.`,
+      );
+    }
     if (!config.spec_language) {
       writeFileSync(configPath, `${JSON.stringify({ ...config, spec_language: "ko" }, null, 2)}\n`);
       affectedFiles.push(".vspec/config.json");
