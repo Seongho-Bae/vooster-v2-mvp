@@ -32,13 +32,13 @@
     {
       "id": "P2",
       "title": "doctor (offline validation)",
-      "status": "todo",
+      "status": "done",
       "gate": "one red fixture per error rule + a clean fixture passes; `vspec doctor` on clean dir exits 0",
       "tasks": [
-        { "id": "P2-T1", "title": "Validation engine: one check per Cockburn rule, findings {rule,level,message,location}", "status": "todo" },
-        { "id": "P2-T2", "title": "Cross-reference checks (primary_actor, step actors, stakeholders resolve to files)", "status": "todo" },
-        { "id": "P2-T3", "title": "format-aware required-field enforcement (error@FULLY_DRESSED, warn otherwise)", "status": "todo" },
-        { "id": "P2-T4", "title": "vspec doctor [KEY|path] command + agent envelope (VALIDATION_FAILED)", "status": "todo" }
+        { "id": "P2-T1", "title": "Validation engine: one check per Cockburn rule, findings {rule,level,message,location}", "status": "done" },
+        { "id": "P2-T2", "title": "Cross-reference checks (primary_actor, step actors, stakeholders resolve to files)", "status": "done" },
+        { "id": "P2-T3", "title": "format-aware required-field enforcement (error@FULLY_DRESSED, warn otherwise)", "status": "done" },
+        { "id": "P2-T4", "title": "vspec doctor [KEY|path] command + agent envelope (VALIDATION_FAILED)", "status": "done" }
       ]
     },
     {
