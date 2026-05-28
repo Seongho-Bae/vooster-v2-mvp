@@ -48,16 +48,16 @@ export function createUseCase(args: {
     stakeholderInterests: [
       {
         stakeholder: "Project Team",
-        interest: "the use case captures an actionable behavior contract.",
+        interest: "요청한 기능이 검증 가능한 use case 계약으로 기록된다.",
         protectionMechanism: "Success Guarantee",
       },
     ],
     preconditions: [],
-    trigger: `${displayName(primaryActor)} needs to ${args.title.toLowerCase()}.`,
-    mainSuccess: [{ number: 1, actor: primaryActor, action: `${args.title.toLowerCase()}.` }],
+    trigger: `${displayName(primaryActor)}가 ${args.title} 명세 작성을 요청한다.`,
+    mainSuccess: [{ number: 1, actor: primaryActor, action: `${args.title} 요청을 제출한다.` }],
     extensions: [],
-    successGuarantee: "The behavior contract is available as a use case file.",
-    minimalGuarantee: "Existing specification files are not modified.",
+    successGuarantee: "요청한 기능의 use case 파일이 생성되고 doctor로 검증할 수 있다.",
+    minimalGuarantee: "기존 specification 파일은 명시적인 편집 없이 변경되지 않는다.",
     notes: null,
   };
   writeFileSync(path, serializeUseCase(useCase));
@@ -111,7 +111,7 @@ function ensureActor(root: string, name: string) {
         actor_type: "PRIMARY",
         is_human: true,
       }),
-      `${displayName(name)} interacting with the system.\n`,
+      `${displayName(name)}가 시스템과 상호작용합니다.\n`,
     ),
   );
 }

@@ -13,8 +13,9 @@ Identity is human-readable and encoded in frontmatter + filename.
 ```
 <repo root>/
 ├── .vspec/
-│   └── config.json          # { "vspec_format": 1, "key_prefix": "VSPEC" }
+│   └── config.json          # { "vspec_format": 1, "key_prefix": "VSPEC", "spec_language": "ko" }
 └── specs/
+    ├── glossary.md          # ubiquitous language + avoid terms
     ├── actors/
     │   ├── developer.md
     │   └── system.md
@@ -27,7 +28,12 @@ Identity is human-readable and encoded in frontmatter + filename.
 ```
 
 `.vspec/config.json` is the only state file. The repo is the project; there is
-no session or cache directory.
+no session or cache directory. `spec_language` guides generated skeleton text
+and agent instructions; `ko` is the MVP default.
+
+`specs/glossary.md` is the domain language file. `doctor` reads its
+`Avoid Terms` section and warns when use-case text uses those vague or
+non-domain expressions instead of the preferred ubiquitous language.
 
 ## Frontmatter
 

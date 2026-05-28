@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 
-export type VspecConfig = { vspec_format: 1; key_prefix: string };
+export type VspecConfig = { vspec_format: 1; key_prefix: string; spec_language?: "ko" | "en" | "match-input" };
 
 export function findConfigDir(start = process.cwd()): string | null {
   let current = resolve(start);

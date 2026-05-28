@@ -42,4 +42,16 @@ describe("use-case authoring loop", () => {
     expect(runDoctor({ root, target: key }).findings.filter((finding) => finding.level === "error")).toEqual([]);
     rmSync(root, { recursive: true, force: true });
   });
+
+  it("creates Korean-first skeleton text for new use cases", () => {
+    const root = join(tmpdir(), `vspec-korean-skeleton-${crypto.randomUUID()}`);
+    mkdirSync(root, { recursive: true });
+    initProject({ root, key: "VSPEC" });
+    const created = createUseCase({ cwd: root, title: "리뷰 요청을 승인한다", primaryActor: "developer" });
+    const file = readFileSync(join(root, created.path), "utf8");
+    expect(file).toContain("요청한 기능이 검증 가능한 use case 계약으로 기록된다.");
+    expect(file).toContain("Developer가 리뷰 요청을 승인한다 명세 작성을 요청한다.");
+    expect(file).toContain("리뷰 요청을 승인한다 요청을 제출한다.");
+    rmSync(root, { recursive: true, force: true });
+  });
 });

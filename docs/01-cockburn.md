@@ -129,6 +129,12 @@ Goal status: `IDENTIFIED | IN_DESIGN | PROMOTED | REJECTED`.
 | Step over 25 words.                                             | Warn  |
 | More than 9 main success steps.                                 | Warn  |
 | Required field missing while `format: BRIEF` / `CASUAL`.        | Warn  |
+| Scenario step uses vague glossary Avoid Terms.                   | Warn  |
+| Scenario step is too short to become an E2E assertion.           | Warn  |
+| Guarantee is not concrete or observable.                         | Warn  |
+| Contract text uses glossary Avoid Terms instead of domain terms. | Warn  |
+| Scenario step focuses on UI mechanics instead of domain action.  | Warn  |
+| Scenario step lacks enough action/object detail for acceptance.  | Warn  |
 
 The exact list is the contract for the `doctor` phase (see `GOAL.md` P2). Each
 row maps to a discrete check with its own test.

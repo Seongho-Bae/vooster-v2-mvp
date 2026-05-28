@@ -25,6 +25,7 @@ export function runDoctor(args: { root?: string; target?: string }): DoctorResul
   const files = resolveTargets(root, args.target);
   const findings: Finding[] = [];
   const stakeholderRefs = readStakeholderRefs(root);
+  const glossary = readGlossary(root);
 
   if (args.target && files.length === 0) {
     return {
@@ -54,7 +55,7 @@ export function runDoctor(args: { root?: string; target?: string }): DoctorResul
       });
       continue;
     }
-    findings.push(...validateUseCase({ root, file, useCase: parsed, stakeholderRefs }));
+    findings.push(...validateUseCase({ root, file, useCase: parsed, stakeholderRefs, glossary }));
   }
 
   return { findings, files: files.map((file) => relativePath(file, root)) };
@@ -79,8 +80,9 @@ function validateUseCase(args: {
   file: string;
   useCase: ParsedUseCase;
   stakeholderRefs: Set<string>;
+  glossary: Glossary;
 }): Finding[] {
-  const { root, file, useCase, stakeholderRefs } = args;
+  const { root, file, useCase, stakeholderRefs, glossary } = args;
   const location = relativePath(file, root);
   const findings: Finding[] = [];
   const actorExists = (name: string) => existsSync(join(root, "specs/actors", `${displayToSlug(name)}.md`));
@@ -94,10 +96,12 @@ function validateUseCase(args: {
   }
   for (const step of useCase.mainSuccess) {
     validateStep(findings, actorExists, "step-bold-actor-action", location, String(step.number), step.actor, step.action);
+    validateQualityStep(findings, glossary, location, String(step.number), step.action);
   }
   for (const extension of useCase.extensions) {
     for (const step of extension.steps) {
       validateStep(findings, actorExists, "step-bold-actor-action", location, step.id, step.actor, step.action);
+      validateQualityStep(findings, glossary, location, step.id, step.action);
     }
   }
   for (const item of useCase.stakeholderInterests) {
@@ -138,6 +142,9 @@ function validateUseCase(args: {
   if (useCase.mainSuccess.length > 9) {
     findings.push(warn("main-success-step-count", "Main success scenario has more than 9 steps.", location));
   }
+  validateGuaranteeQuality(findings, glossary, location, "Success Guarantee", useCase.successGuarantee);
+  validateGuaranteeQuality(findings, glossary, location, "Minimal Guarantee", useCase.minimalGuarantee);
+  validateUbiquitousLanguage(findings, glossary, location, collectContractText(useCase));
 
   addRequiredFieldFinding(findings, "Stakeholders and Interests", useCase.stakeholderInterests.length > 0, requiredLevel, location);
   addRequiredFieldFinding(findings, "Preconditions", true, requiredLevel, location);
@@ -148,6 +155,10 @@ function validateUseCase(args: {
 
   return findings;
 }
+
+type Glossary = {
+  avoidTerms: string[];
+};
 
 function validateStep(
   findings: Finding[],
@@ -165,6 +176,68 @@ function validateStep(
   if (!actorExists(actor)) {
     findings.push(error("step-actor-exists", `Actor ${actor} in step ${ref} does not exist.`, location));
   }
+}
+
+function validateQualityStep(findings: Finding[], glossary: Glossary, location: string, ref: string, action: string) {
+  const normalized = action.trim();
+  const vague = firstVagueTerm(normalized, glossary);
+  if (vague) {
+    findings.push(
+      warn(
+        "quality-specific-step",
+        `Step ${ref} uses vague term "${vague}". Write the observable domain action and result instead.`,
+        location,
+      ),
+    );
+  }
+  if (normalized.replace(/[.!?。]$/g, "").length < 8) {
+    findings.push(warn("observable-outcome", `Step ${ref} is too short to be E2E-testable. Add the observable object or state change.`, location));
+  }
+  if (/\b(click|button|screen|modal)\b/i.test(normalized) || /(클릭|버튼|화면|모달)/.test(normalized)) {
+    findings.push(
+      warn(
+        "no-ui-microdetail-unless-domain",
+        `Step ${ref} contains UI mechanics. Prefer domain behavior unless the UI term is part of the domain language.`,
+        location,
+      ),
+    );
+  }
+  const words = normalized.replace(/[.!?。]$/g, "").split(/\s+/).filter(Boolean);
+  if (!containsHangul(normalized) && words.length < 2) {
+    findings.push(warn("acceptance-ready", `Step ${ref} needs actor/action/object detail before it can become an acceptance test.`, location));
+  }
+}
+
+function validateGuaranteeQuality(
+  findings: Finding[],
+  glossary: Glossary,
+  location: string,
+  label: string,
+  guarantee: string | null,
+) {
+  if (!guarantee) return;
+  const vague = firstVagueTerm(guarantee, glossary);
+  if (vague || guarantee.trim().length < 12) {
+    findings.push(
+      warn(
+        "testable-guarantee",
+        `${label} should describe a concrete, observable end state${vague ? ` instead of "${vague}"` : ""}.`,
+        location,
+      ),
+    );
+  }
+}
+
+function validateUbiquitousLanguage(findings: Finding[], glossary: Glossary, location: string, text: string) {
+  const term = firstVagueTerm(text, glossary);
+  if (!term) return;
+  findings.push(
+    warn(
+      "ubiquitous-language",
+      `Avoid "${term}" from specs/glossary.md. Use a preferred domain term or define a clearer term in the glossary.`,
+      location,
+    ),
+  );
 }
 
 function addRequiredFieldFinding(
@@ -191,6 +264,52 @@ function readStakeholderRefs(root: string): Set<string> {
     }
   }
   return refs;
+}
+
+function readGlossary(root: string): Glossary {
+  const path = join(root, "specs/glossary.md");
+  const defaultAvoidTerms = ["처리한다", "관리한다", "지원한다", "적절히", "등", "관련", "process", "manage", "handle", "support", "appropriate", "etc"];
+  if (!existsSync(path)) return { avoidTerms: defaultAvoidTerms };
+  const text = readFileSync(path, "utf8");
+  const avoidTerms = [...defaultAvoidTerms];
+  let inAvoid = false;
+  for (const line of text.split(/\r?\n/)) {
+    if (/^##\s+Avoid Terms/i.test(line)) {
+      inAvoid = true;
+      continue;
+    }
+    if (/^##\s+/.test(line)) inAvoid = false;
+    if (!inAvoid) continue;
+    const match = line.match(/^- `([^`]+)`:/);
+    if (match) avoidTerms.push(match[1]);
+  }
+  return { avoidTerms: [...new Set(avoidTerms)] };
+}
+
+function firstVagueTerm(text: string, glossary: Glossary): string | null {
+  const lower = text.toLowerCase();
+  return glossary.avoidTerms.find((term) => lower.includes(term.toLowerCase())) ?? null;
+}
+
+function collectContractText(useCase: ParsedUseCase): string {
+  return [
+    useCase.title,
+    useCase.blurb,
+    ...useCase.stakeholderInterests.flatMap((item) => [item.stakeholder, item.interest, item.protectionMechanism]),
+    ...useCase.preconditions,
+    useCase.trigger,
+    ...useCase.mainSuccess.map((step) => step.action),
+    ...useCase.extensions.flatMap((extension) => [extension.condition, ...extension.steps.map((step) => step.action)]),
+    useCase.successGuarantee,
+    useCase.minimalGuarantee,
+    useCase.notes,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+function containsHangul(text: string): boolean {
+  return /[가-힣]/.test(text);
 }
 
 function looksLikeVerbPhrase(title: string): boolean {
