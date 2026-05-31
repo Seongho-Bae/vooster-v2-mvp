@@ -50,20 +50,30 @@ export function parseUseCaseMarkdown(text: string): ParsedUseCase {
   return { frontmatter, ...parseUseCaseBody(content, frontmatter.title) };
 }
 
-export function parseUseCaseBody(content: string, fallbackTitle: string): UseCaseBody {
+export function parseUseCaseBody(
+  content: string,
+  fallbackTitle: string,
+): UseCaseBody {
   const lines = trimTrailingWhitespace(content).split("\n");
   const titleLineIndex = lines.findIndex((line) => line.startsWith("# "));
-  const title = titleLineIndex >= 0 ? lines[titleLineIndex].slice(2).trim() : fallbackTitle;
-  const afterTitle = titleLineIndex >= 0 ? lines.slice(titleLineIndex + 1) : lines;
+  const title =
+    titleLineIndex >= 0 ? lines[titleLineIndex].slice(2).trim() : fallbackTitle;
+  const afterTitle =
+    titleLineIndex >= 0 ? lines.slice(titleLineIndex + 1) : lines;
   const firstSection = afterTitle.findIndex((line) => line.startsWith("## "));
-  const intro = firstSection >= 0 ? afterTitle.slice(0, firstSection) : afterTitle;
+  const intro =
+    firstSection >= 0 ? afterTitle.slice(0, firstSection) : afterTitle;
   const blurb = parseBlurb(intro);
-  const sections = splitSections(firstSection >= 0 ? afterTitle.slice(firstSection) : []);
+  const sections = splitSections(
+    firstSection >= 0 ? afterTitle.slice(firstSection) : [],
+  );
 
   return {
     title,
     blurb,
-    stakeholderInterests: parseStakeholderInterests(sections.get("Stakeholders and Interests") ?? []),
+    stakeholderInterests: parseStakeholderInterests(
+      sections.get("Stakeholders and Interests") ?? [],
+    ),
     preconditions: parseBullets(sections.get("Preconditions") ?? []),
     trigger: parseParagraph(sections.get("Trigger") ?? []),
     mainSuccess: parseMainSuccess(sections.get("Main Success Scenario") ?? []),
@@ -77,7 +87,11 @@ export function parseUseCaseBody(content: string, fallbackTitle: string): UseCas
 // Replace a single section's content on a use case from the raw text an agent
 // submits via `vspec usecase apply --section`. The text is the section body only
 // (no `## Heading`), in the same line format the parser reads from a full file.
-export function applyBodySection(body: UseCaseBody, section: BodySection, text: string): void {
+export function applyBodySection(
+  body: UseCaseBody,
+  section: BodySection,
+  text: string,
+): void {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
   switch (section) {
     case "blurb":
@@ -135,7 +149,9 @@ function splitSections(lines: string[]): Map<SectionName, string[]> {
   for (const line of lines) {
     const heading = line.match(/^## (.+)$/);
     if (heading) {
-      current = SECTION_ORDER.includes(heading[1] as SectionName) ? (heading[1] as SectionName) : null;
+      current = SECTION_ORDER.includes(heading[1] as SectionName)
+        ? (heading[1] as SectionName)
+        : null;
       if (current && !sections.has(current)) sections.set(current, []);
       continue;
     }
@@ -151,9 +167,14 @@ function parseStakeholderInterests(lines: string[]): StakeholderInterest[] {
     .map((line) => line.slice(2).trim())
     .map((line) => {
       const match = line.match(/^\*\*(.+?)\*\*:\s*(.*)$/);
-      if (!match) return { stakeholder: "", interest: line, protectionMechanism: null };
-      const protectionMatch = match[2].match(/\s*_\((?:Protected by):\s*(.+?)\)_\s*$/i);
-      const interest = protectionMatch ? match[2].slice(0, protectionMatch.index).trim() : match[2].trim();
+      if (!match)
+        return { stakeholder: "", interest: line, protectionMechanism: null };
+      const protectionMatch = match[2].match(
+        /\s*_\((?:Protected by):\s*(.+?)\)_\s*$/i,
+      );
+      const interest = protectionMatch
+        ? match[2].slice(0, protectionMatch.index).trim()
+        : match[2].trim();
       return {
         stakeholder: match[1].trim(),
         interest,
@@ -185,10 +206,14 @@ function parseVerbatim(lines: string[]): string | null {
 
 function parseStepText(text: string): { actor: string; action: string } {
   const match = text.match(/^\*\*(.+?)\*\*\s+(.+)$/);
-  return match ? { actor: match[1].trim(), action: match[2].trim() } : { actor: "", action: text.trim() };
+  return match
+    ? { actor: match[1].trim(), action: match[2].trim() }
+    : { actor: "", action: text.trim() };
 }
 
-function parseMainSuccess(lines: string[]): { number: number; actor: string; action: string }[] {
+function parseMainSuccess(
+  lines: string[],
+): { number: number; actor: string; action: string }[] {
   return lines
     .map((line) => line.trim())
     .map((line) => line.match(/^(\d+)\.\s+(.+)$/))
@@ -229,8 +254,12 @@ function parseExtensions(lines: string[]): UseCaseExtension[] {
   return extensions;
 }
 
-function parseOutcome(text: string): { outcome: ExtensionOutcome; rejoinStep: number | null } | null {
-  const match = text.match(/^\(Outcome:\s*(SUCCESS|FAILURE|PARTIAL)\s*(?:—|-)?\s*(.*?)\)$/i);
+function parseOutcome(
+  text: string,
+): { outcome: ExtensionOutcome; rejoinStep: number | null } | null {
+  const match = text.match(
+    /^\(Outcome:\s*(SUCCESS|FAILURE|PARTIAL)\s*(?:—|-)?\s*(.*?)\)$/i,
+  );
   if (!match) return null;
   const rejoin = match[2].match(/rejoins main at step\s+(\d+)/i);
   return {

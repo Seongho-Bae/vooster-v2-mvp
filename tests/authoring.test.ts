@@ -4,7 +4,11 @@ import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { describe, expect, it } from "vitest";
 import { initProject } from "../src/project.js";
-import { createUseCase, listUseCases, showUseCase } from "../src/usecase-commands.js";
+import {
+  createUseCase,
+  listUseCases,
+  showUseCase,
+} from "../src/usecase-commands.js";
 import { parseUseCaseMarkdown } from "../src/format/parse.js";
 import { serializeUseCase } from "../src/format/serialize.js";
 import { normalizeUseCaseMarkdown } from "../src/format/normalize.js";
@@ -15,12 +19,24 @@ describe("use-case authoring loop", () => {
     const root = join(tmpdir(), `vspec-authoring-${crypto.randomUUID()}`);
     mkdirSync(root, { recursive: true });
     initProject({ root, key: "VSPEC" });
-    const created = createUseCase({ cwd: root, title: "Author a use case", primaryActor: "developer" });
+    const created = createUseCase({
+      cwd: root,
+      title: "Author a use case",
+      primaryActor: "developer",
+    });
     const file = readFileSync(join(root, created.path), "utf8");
-    expect(serializeUseCase(parseUseCaseMarkdown(file))).toBe(normalizeUseCaseMarkdown(file));
-    expect(runDoctor({ root, target: created.key }).findings.filter((finding) => finding.level === "error")).toEqual([]);
+    expect(serializeUseCase(parseUseCaseMarkdown(file))).toBe(
+      normalizeUseCaseMarkdown(file),
+    );
+    expect(
+      runDoctor({ root, target: created.key }).findings.filter(
+        (finding) => finding.level === "error",
+      ),
+    ).toEqual([]);
     expect(listUseCases({ cwd: root })).toHaveLength(1);
-    expect(showUseCase({ cwd: root, key: created.key }).useCase.frontmatter.title).toBe("Author a use case");
+    expect(
+      showUseCase({ cwd: root, key: created.key }).useCase.frontmatter.title,
+    ).toBe("Author a use case");
     rmSync(root, { recursive: true, force: true });
   });
 
@@ -33,13 +49,30 @@ describe("use-case authoring loop", () => {
     execFileSync(tsx, [cli, "init", "--key", "VSPEC"], { cwd: root });
     const output = execFileSync(
       tsx,
-      [cli, "usecase", "create", "--title", "Author a use case", "--primary-actor", "developer"],
+      [
+        cli,
+        "usecase",
+        "create",
+        "--title",
+        "Author a use case",
+        "--primary-actor",
+        "developer",
+      ],
       { cwd: root, encoding: "utf8" },
     );
     const key = (JSON.parse(output) as { data: { key: string } }).data.key;
-    const file = readFileSync(join(root, "specs/usecases/VSPEC-001-author-a-use-case.md"), "utf8");
-    expect(serializeUseCase(parseUseCaseMarkdown(file))).toBe(normalizeUseCaseMarkdown(file));
-    expect(runDoctor({ root, target: key }).findings.filter((finding) => finding.level === "error")).toEqual([]);
+    const file = readFileSync(
+      join(root, "specs/usecases/VSPEC-001-author-a-use-case.md"),
+      "utf8",
+    );
+    expect(serializeUseCase(parseUseCaseMarkdown(file))).toBe(
+      normalizeUseCaseMarkdown(file),
+    );
+    expect(
+      runDoctor({ root, target: key }).findings.filter(
+        (finding) => finding.level === "error",
+      ),
+    ).toEqual([]);
     rmSync(root, { recursive: true, force: true });
   });
 
@@ -47,10 +80,18 @@ describe("use-case authoring loop", () => {
     const root = join(tmpdir(), `vspec-korean-skeleton-${crypto.randomUUID()}`);
     mkdirSync(root, { recursive: true });
     initProject({ root, key: "VSPEC" });
-    const created = createUseCase({ cwd: root, title: "리뷰 요청을 승인한다", primaryActor: "developer" });
+    const created = createUseCase({
+      cwd: root,
+      title: "리뷰 요청을 승인한다",
+      primaryActor: "developer",
+    });
     const file = readFileSync(join(root, created.path), "utf8");
-    expect(file).toContain("요청한 기능이 검증 가능한 use case 계약으로 기록된다.");
-    expect(file).toContain("Developer가 리뷰 요청을 승인한다 명세 작성을 요청한다.");
+    expect(file).toContain(
+      "요청한 기능이 검증 가능한 use case 계약으로 기록된다.",
+    );
+    expect(file).toContain(
+      "Developer가 리뷰 요청을 승인한다 명세 작성을 요청한다.",
+    );
     expect(file).toContain("리뷰 요청을 승인한다 요청을 제출한다.");
     rmSync(root, { recursive: true, force: true });
   });
@@ -59,8 +100,14 @@ describe("use-case authoring loop", () => {
     const root = join(tmpdir(), `vspec-korean-slug-${crypto.randomUUID()}`);
     mkdirSync(root, { recursive: true });
     initProject({ root, key: "VSPEC" });
-    const created = createUseCase({ cwd: root, title: "리뷰 완료 후 학습 루프 실행", primaryActor: "developer" });
-    expect(created.path).toBe("specs/usecases/VSPEC-001-리뷰-완료-후-학습-루프-실행.md");
+    const created = createUseCase({
+      cwd: root,
+      title: "리뷰 완료 후 학습 루프 실행",
+      primaryActor: "developer",
+    });
+    expect(created.path).toBe(
+      "specs/usecases/VSPEC-001-리뷰-완료-후-학습-루프-실행.md",
+    );
     rmSync(root, { recursive: true, force: true });
   });
 
@@ -68,7 +115,13 @@ describe("use-case authoring loop", () => {
     const root = join(tmpdir(), `vspec-empty-slug-${crypto.randomUUID()}`);
     mkdirSync(root, { recursive: true });
     initProject({ root, key: "VSPEC" });
-    expect(() => createUseCase({ cwd: root, title: "!!! ??? ...", primaryActor: "developer" })).toThrow(/no letters or numbers/);
+    expect(() =>
+      createUseCase({
+        cwd: root,
+        title: "!!! ??? ...",
+        primaryActor: "developer",
+      }),
+    ).toThrow(/no letters or numbers/);
     rmSync(root, { recursive: true, force: true });
   });
 
@@ -76,7 +129,13 @@ describe("use-case authoring loop", () => {
     const root = join(tmpdir(), `vspec-bad-actor-${crypto.randomUUID()}`);
     mkdirSync(root, { recursive: true });
     initProject({ root, key: "VSPEC" });
-    expect(() => createUseCase({ cwd: root, title: "Author a use case", primaryActor: "사용자" })).toThrow(/not a valid actor name/);
+    expect(() =>
+      createUseCase({
+        cwd: root,
+        title: "Author a use case",
+        primaryActor: "사용자",
+      }),
+    ).toThrow(/not a valid actor name/);
     rmSync(root, { recursive: true, force: true });
   });
 });

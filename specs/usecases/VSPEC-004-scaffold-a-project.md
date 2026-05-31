@@ -10,6 +10,7 @@ priority: P1
 scope: vspec
 primary_actor: ai-agent
 ---
+
 # Scaffold a project
 
 ## Stakeholders and Interests

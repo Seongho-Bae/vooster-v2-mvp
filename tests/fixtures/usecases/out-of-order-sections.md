@@ -10,6 +10,7 @@ priority: P1
 scope: vspec
 primary_actor: developer
 ---
+
 # Scaffold a project
 
 ## Main Success Scenario

@@ -28,7 +28,10 @@ export type DoctorResult = {
   promotable: string[];
 };
 
-export function runDoctor(args: { root?: string; target?: string }): DoctorResult {
+export function runDoctor(args: {
+  root?: string;
+  target?: string;
+}): DoctorResult {
   const root = resolve(args.root ?? process.cwd());
   const files = resolveTargets(root, args.target);
   const findings: Finding[] = [];
@@ -66,11 +69,24 @@ export function runDoctor(args: { root?: string; target?: string }): DoctorResul
       });
       continue;
     }
-    findings.push(...validateUseCase({ root, file, useCase: parsed, actors, stakeholders, glossary }));
+    findings.push(
+      ...validateUseCase({
+        root,
+        file,
+        useCase: parsed,
+        actors,
+        stakeholders,
+        glossary,
+      }),
+    );
     if (isPromotable(parsed)) promotable.push(parsed.frontmatter.key);
   }
 
-  return { findings, files: files.map((file) => relativePath(file, root)), promotable };
+  return {
+    findings,
+    files: files.map((file) => relativePath(file, root)),
+    promotable,
+  };
 }
 
 // A use case is promotable when it carries every FULLY_DRESSED-required section
@@ -88,7 +104,10 @@ function isPromotable(useCase: ParsedUseCase): boolean {
 }
 
 function resolveTargets(root: string, target?: string): string[] {
-  if (!target) return walkFiles(join(root, "specs/usecases"), (path) => path.endsWith(".md"));
+  if (!target)
+    return walkFiles(join(root, "specs/usecases"), (path) =>
+      path.endsWith(".md"),
+    );
   const direct = resolve(root, target);
   if (existsSync(direct)) {
     return statSync(direct).isDirectory()
@@ -115,72 +134,225 @@ function validateUseCase(args: {
   const location = relativePath(file, root);
   const findings: Finding[] = [];
   const actorExists = (name: string) => actorRefs.has(displayToSlug(name));
-  const requiredLevel = useCase.frontmatter.format === "FULLY_DRESSED" ? "error" : "warn";
+  const requiredLevel =
+    useCase.frontmatter.format === "FULLY_DRESSED" ? "error" : "warn";
 
   if (useCase.stakeholderInterests.length === 0) {
-    findings.push(error("stakeholder-interest-present", "At least one stakeholder interest is required.", location));
+    findings.push(
+      error(
+        "stakeholder-interest-present",
+        "At least one stakeholder interest is required.",
+        location,
+      ),
+    );
   }
   if (useCase.mainSuccess.length === 0) {
-    findings.push(error("main-success-has-step", "Main success scenario must have at least one step.", location));
+    findings.push(
+      error(
+        "main-success-has-step",
+        "Main success scenario must have at least one step.",
+        location,
+      ),
+    );
   }
   for (const step of useCase.mainSuccess) {
-    validateStep(findings, actors, "step-bold-actor-action", location, String(step.number), step.actor, step.action);
-    validateQualityStep(findings, glossary, location, String(step.number), step.action);
+    validateStep(
+      findings,
+      actors,
+      "step-bold-actor-action",
+      location,
+      String(step.number),
+      step.actor,
+      step.action,
+    );
+    validateQualityStep(
+      findings,
+      glossary,
+      location,
+      String(step.number),
+      step.action,
+    );
   }
   for (const extension of useCase.extensions) {
     for (const step of extension.steps) {
-      validateStep(findings, actors, "step-bold-actor-action", location, step.id, step.actor, step.action);
+      validateStep(
+        findings,
+        actors,
+        "step-bold-actor-action",
+        location,
+        step.id,
+        step.actor,
+        step.action,
+      );
       validateQualityStep(findings, glossary, location, step.id, step.action);
     }
   }
   for (const item of useCase.stakeholderInterests) {
     if (!stakeholderRefs.has(displayToSlug(item.stakeholder))) {
-      findings.push(error("stakeholder-reference-exists", `Stakeholder ${item.stakeholder} does not exist.${refHint("stakeholder", stakeholders, item.stakeholder)}`, location));
+      findings.push(
+        error(
+          "stakeholder-reference-exists",
+          `Stakeholder ${item.stakeholder} does not exist.${refHint("stakeholder", stakeholders, item.stakeholder)}`,
+          location,
+        ),
+      );
     }
   }
   if (!actorExists(useCase.frontmatter.primary_actor)) {
-    findings.push(error("primary-actor-exists", `Primary actor ${useCase.frontmatter.primary_actor} does not exist.${refHint("actor", actors, useCase.frontmatter.primary_actor)}`, location));
+    findings.push(
+      error(
+        "primary-actor-exists",
+        `Primary actor ${useCase.frontmatter.primary_actor} does not exist.${refHint("actor", actors, useCase.frontmatter.primary_actor)}`,
+        location,
+      ),
+    );
   }
-  const mainStepNumbers = new Set(useCase.mainSuccess.map((step, index) => step.number || index + 1));
+  const mainStepNumbers = new Set(
+    useCase.mainSuccess.map((step, index) => step.number || index + 1),
+  );
   for (const extension of useCase.extensions) {
-    const point = extension.point.startsWith("*") ? "*" : Number(extension.point.match(/^(\d+)/)?.[1]);
+    const point = extension.point.startsWith("*")
+      ? "*"
+      : Number(extension.point.match(/^(\d+)/)?.[1]);
     if (point !== "*" && !mainStepNumbers.has(point)) {
-      findings.push(error("extension-references-step", `Extension ${extension.point} references missing step ${point}.`, location));
+      findings.push(
+        error(
+          "extension-references-step",
+          `Extension ${extension.point} references missing step ${point}.`,
+          location,
+        ),
+      );
     }
-    if (extension.rejoinStep !== null && !mainStepNumbers.has(extension.rejoinStep)) {
-      findings.push(error("extension-rejoin-step", `Extension ${extension.point} rejoins missing step ${extension.rejoinStep}.`, location));
+    if (
+      extension.rejoinStep !== null &&
+      !mainStepNumbers.has(extension.rejoinStep)
+    ) {
+      findings.push(
+        error(
+          "extension-rejoin-step",
+          `Extension ${extension.point} rejoins missing step ${extension.rejoinStep}.`,
+          location,
+        ),
+      );
     }
   }
   if (!useCase.successGuarantee) {
-    findings.push(error("success-guarantee-present", "Success Guarantee is required.", location));
+    findings.push(
+      error(
+        "success-guarantee-present",
+        "Success Guarantee is required.",
+        location,
+      ),
+    );
   }
   if (!useCase.minimalGuarantee) {
-    findings.push(error("minimal-guarantee-present", "Minimal Guarantee is required.", location));
+    findings.push(
+      error(
+        "minimal-guarantee-present",
+        "Minimal Guarantee is required.",
+        location,
+      ),
+    );
   }
-  if (!["SUMMARY", "USER_GOAL", "SUBFUNCTION"].includes(useCase.frontmatter.level)) {
-    findings.push(error("level-enum", "level must be SUMMARY, USER_GOAL, or SUBFUNCTION.", location));
+  if (
+    !["SUMMARY", "USER_GOAL", "SUBFUNCTION"].includes(useCase.frontmatter.level)
+  ) {
+    findings.push(
+      error(
+        "level-enum",
+        "level must be SUMMARY, USER_GOAL, or SUBFUNCTION.",
+        location,
+      ),
+    );
   }
   if (!looksLikeVerbPhrase(useCase.frontmatter.title)) {
-    findings.push(warn("title-verb-phrase", "Title should be a verb phrase.", location));
+    findings.push(
+      warn("title-verb-phrase", "Title should be a verb phrase.", location),
+    );
   }
   for (const step of useCase.mainSuccess) {
     if (`${step.actor} ${step.action}`.trim().split(/\s+/).length > 25) {
-      findings.push(warn("step-word-limit", `Step ${step.number} is over 25 words.`, location));
+      findings.push(
+        warn(
+          "step-word-limit",
+          `Step ${step.number} is over 25 words.`,
+          location,
+        ),
+      );
     }
   }
   if (useCase.mainSuccess.length > 9) {
-    findings.push(warn("main-success-step-count", "Main success scenario has more than 9 steps.", location));
+    findings.push(
+      warn(
+        "main-success-step-count",
+        "Main success scenario has more than 9 steps.",
+        location,
+      ),
+    );
   }
-  validateGuaranteeQuality(findings, glossary, location, "Success Guarantee", useCase.successGuarantee);
-  validateGuaranteeQuality(findings, glossary, location, "Minimal Guarantee", useCase.minimalGuarantee);
-  validateUbiquitousLanguage(findings, glossary, location, collectContractText(useCase));
+  validateGuaranteeQuality(
+    findings,
+    glossary,
+    location,
+    "Success Guarantee",
+    useCase.successGuarantee,
+  );
+  validateGuaranteeQuality(
+    findings,
+    glossary,
+    location,
+    "Minimal Guarantee",
+    useCase.minimalGuarantee,
+  );
+  validateUbiquitousLanguage(
+    findings,
+    glossary,
+    location,
+    collectContractText(useCase),
+  );
 
-  addRequiredFieldFinding(findings, "Stakeholders and Interests", useCase.stakeholderInterests.length > 0, requiredLevel, location);
-  addRequiredFieldFinding(findings, "Preconditions", true, requiredLevel, location);
-  addRequiredFieldFinding(findings, "Trigger", Boolean(useCase.trigger), requiredLevel, location);
-  addRequiredFieldFinding(findings, "Main Success Scenario", useCase.mainSuccess.length > 0, requiredLevel, location);
-  addRequiredFieldFinding(findings, "Success Guarantee", Boolean(useCase.successGuarantee), requiredLevel, location);
-  addRequiredFieldFinding(findings, "Minimal Guarantee", Boolean(useCase.minimalGuarantee), requiredLevel, location);
+  addRequiredFieldFinding(
+    findings,
+    "Stakeholders and Interests",
+    useCase.stakeholderInterests.length > 0,
+    requiredLevel,
+    location,
+  );
+  addRequiredFieldFinding(
+    findings,
+    "Preconditions",
+    true,
+    requiredLevel,
+    location,
+  );
+  addRequiredFieldFinding(
+    findings,
+    "Trigger",
+    Boolean(useCase.trigger),
+    requiredLevel,
+    location,
+  );
+  addRequiredFieldFinding(
+    findings,
+    "Main Success Scenario",
+    useCase.mainSuccess.length > 0,
+    requiredLevel,
+    location,
+  );
+  addRequiredFieldFinding(
+    findings,
+    "Success Guarantee",
+    Boolean(useCase.successGuarantee),
+    requiredLevel,
+    location,
+  );
+  addRequiredFieldFinding(
+    findings,
+    "Minimal Guarantee",
+    Boolean(useCase.minimalGuarantee),
+    requiredLevel,
+    location,
+  );
 
   return findings;
 }
@@ -199,11 +371,23 @@ function validateStep(
   action: string,
 ) {
   if (!actor || !action) {
-    findings.push(error(rule, `Step ${ref} must start with a bold actor and include an action.`, location));
+    findings.push(
+      error(
+        rule,
+        `Step ${ref} must start with a bold actor and include an action.`,
+        location,
+      ),
+    );
     return;
   }
   if (!actors.slugs.has(displayToSlug(actor))) {
-    findings.push(error("step-actor-exists", `Actor ${actor} in step ${ref} does not exist.${refHint("actor", actors, actor)}`, location));
+    findings.push(
+      error(
+        "step-actor-exists",
+        `Actor ${actor} in step ${ref} does not exist.${refHint("actor", actors, actor)}`,
+        location,
+      ),
+    );
   }
 }
 
@@ -211,7 +395,11 @@ function validateStep(
 // (ko-default specs are referenced by their English slug, not their display name).
 // If the agent wrote a known display name, name the exact slug to use; otherwise
 // list the available slugs.
-function refHint(kind: "actor" | "stakeholder", index: EntityIndex, used: string): string {
+function refHint(
+  kind: "actor" | "stakeholder",
+  index: EntityIndex,
+  used: string,
+): string {
   const slug = index.byDisplay.get(used.trim().toLowerCase());
   if (slug) {
     return ` "${used}" is a display name — reference the slug \`${slug}\` instead (write **${slug}**).`;
@@ -222,7 +410,13 @@ function refHint(kind: "actor" | "stakeholder", index: EntityIndex, used: string
   return ` Available ${kind} slugs: ${[...index.slugs].sort().join(", ")}. Reference the slug, not the display name.`;
 }
 
-function validateQualityStep(findings: Finding[], glossary: Glossary, location: string, ref: string, action: string) {
+function validateQualityStep(
+  findings: Finding[],
+  glossary: Glossary,
+  location: string,
+  ref: string,
+  action: string,
+) {
   const normalized = action.trim();
   const vague = firstVagueTerm(normalized, glossary);
   if (vague) {
@@ -235,9 +429,18 @@ function validateQualityStep(findings: Finding[], glossary: Glossary, location: 
     );
   }
   if (normalized.replace(/[.!?。]$/g, "").length < 8) {
-    findings.push(warn("observable-outcome", `Step ${ref} is too short to be E2E-testable. Add the observable object or state change.`, location));
+    findings.push(
+      warn(
+        "observable-outcome",
+        `Step ${ref} is too short to be E2E-testable. Add the observable object or state change.`,
+        location,
+      ),
+    );
   }
-  if (/\b(click|button|screen|modal)\b/i.test(normalized) || /(클릭|버튼|화면|모달)/.test(normalized)) {
+  if (
+    /\b(click|button|screen|modal)\b/i.test(normalized) ||
+    /(클릭|버튼|화면|모달)/.test(normalized)
+  ) {
     findings.push(
       warn(
         "no-ui-microdetail-unless-domain",
@@ -246,9 +449,18 @@ function validateQualityStep(findings: Finding[], glossary: Glossary, location: 
       ),
     );
   }
-  const words = normalized.replace(/[.!?。]$/g, "").split(/\s+/).filter(Boolean);
+  const words = normalized
+    .replace(/[.!?。]$/g, "")
+    .split(/\s+/)
+    .filter(Boolean);
   if (!containsHangul(normalized) && words.length < 2) {
-    findings.push(warn("acceptance-ready", `Step ${ref} needs actor/action/object detail before it can become an acceptance test.`, location));
+    findings.push(
+      warn(
+        "acceptance-ready",
+        `Step ${ref} needs actor/action/object detail before it can become an acceptance test.`,
+        location,
+      ),
+    );
   }
 }
 
@@ -272,7 +484,12 @@ function validateGuaranteeQuality(
   }
 }
 
-function validateUbiquitousLanguage(findings: Finding[], glossary: Glossary, location: string, text: string) {
+function validateUbiquitousLanguage(
+  findings: Finding[],
+  glossary: Glossary,
+  location: string,
+  text: string,
+) {
   const term = firstVagueTerm(text, glossary);
   if (!term) return;
   findings.push(
@@ -291,17 +508,27 @@ function addRequiredFieldFinding(
   level: "error" | "warn",
   location: string,
 ) {
-  if (!present) findings.push({ rule: "required-field", level, message: `${field} is required.`, location });
+  if (!present)
+    findings.push({
+      rule: "required-field",
+      level,
+      message: `${field} is required.`,
+      location,
+    });
 }
 
 function readEntityIndex(root: string, dir: string): EntityIndex {
   const slugs = new Set<string>();
   const byDisplay = new Map<string, string>();
-  for (const file of walkFiles(join(root, dir), (path) => path.endsWith(".md"))) {
+  for (const file of walkFiles(join(root, dir), (path) =>
+    path.endsWith(".md"),
+  )) {
     const slug = basename(file, ".md");
     slugs.add(slug);
     try {
-      const data = parseMatter(readFileSync(file, "utf8")).data as { display_name?: unknown };
+      const data = parseMatter(readFileSync(file, "utf8")).data as {
+        display_name?: unknown;
+      };
       if (typeof data.display_name === "string" && data.display_name.trim()) {
         byDisplay.set(data.display_name.trim().toLowerCase(), slug);
       }
@@ -314,7 +541,20 @@ function readEntityIndex(root: string, dir: string): EntityIndex {
 
 function readGlossary(root: string): Glossary {
   const path = join(root, "specs/glossary.md");
-  const defaultAvoidTerms = ["처리한다", "관리한다", "지원한다", "적절히", "등", "관련", "process", "manage", "handle", "support", "appropriate", "etc"];
+  const defaultAvoidTerms = [
+    "처리한다",
+    "관리한다",
+    "지원한다",
+    "적절히",
+    "등",
+    "관련",
+    "process",
+    "manage",
+    "handle",
+    "support",
+    "appropriate",
+    "etc",
+  ];
   if (!existsSync(path)) return { avoidTerms: defaultAvoidTerms };
   const text = readFileSync(path, "utf8");
   const avoidTerms = [...defaultAvoidTerms];
@@ -340,7 +580,10 @@ function matchesAsToken(text: string, term: string): boolean {
     const idx = lowerText.indexOf(lowerTerm, start);
     if (idx === -1) return false;
     const before = idx > 0 ? lowerText[idx - 1] : null;
-    const after = idx + lowerTerm.length < lowerText.length ? lowerText[idx + lowerTerm.length] : null;
+    const after =
+      idx + lowerTerm.length < lowerText.length
+        ? lowerText[idx + lowerTerm.length]
+        : null;
     const wordChar = /[\p{L}\p{N}]/u;
     const beforeIsWord = before !== null && wordChar.test(before);
     const afterIsWord = after !== null && wordChar.test(after);
@@ -357,11 +600,18 @@ function collectContractText(useCase: ParsedUseCase): string {
   return [
     useCase.title,
     useCase.blurb,
-    ...useCase.stakeholderInterests.flatMap((item) => [item.stakeholder, item.interest, item.protectionMechanism]),
+    ...useCase.stakeholderInterests.flatMap((item) => [
+      item.stakeholder,
+      item.interest,
+      item.protectionMechanism,
+    ]),
     ...useCase.preconditions,
     useCase.trigger,
     ...useCase.mainSuccess.map((step) => step.action),
-    ...useCase.extensions.flatMap((extension) => [extension.condition, ...extension.steps.map((step) => step.action)]),
+    ...useCase.extensions.flatMap((extension) => [
+      extension.condition,
+      ...extension.steps.map((step) => step.action),
+    ]),
     useCase.successGuarantee,
     useCase.minimalGuarantee,
     useCase.notes,
@@ -376,11 +626,21 @@ function containsHangul(text: string): boolean {
 
 export function looksLikeVerbPhrase(title: string): boolean {
   if (containsHangul(title)) {
-    const stripped = title.trim().replace(/[\s\p{P}\p{Z}「」『』【】〔〕《》〈〉"'()\[\]{}]+$/u, "");
+    const stripped = title
+      .trim()
+      .replace(/[\s\p{P}\p{Z}「」『』【】〔〕《》〈〉"'()\[\]{}]+$/u, "");
     return /[다라자]$/.test(stripped);
   }
   const first = title.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
-  const weakNouns = new Set(["the", "a", "an", "spec", "use", "case", "system"]);
+  const weakNouns = new Set([
+    "the",
+    "a",
+    "an",
+    "spec",
+    "use",
+    "case",
+    "system",
+  ]);
   return first.length > 2 && !weakNouns.has(first) && !first.endsWith("tion");
 }
 
@@ -393,6 +653,7 @@ function warn(rule: string, message: string, location: string): Finding {
 }
 
 function formatParseError(error: unknown): string {
-  if (error instanceof ZodError) return `Invalid frontmatter: ${error.issues.map((issue) => issue.path.join(".")).join(", ")}`;
+  if (error instanceof ZodError)
+    return `Invalid frontmatter: ${error.issues.map((issue) => issue.path.join(".")).join(", ")}`;
   return error instanceof Error ? error.message : "Invalid use case file.";
 }

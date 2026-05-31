@@ -14,58 +14,155 @@ describe("doctor validation", () => {
   });
 
   it.each([
-    ["stakeholder-interest-present", (text: string) => text.replace(/- \*\*Vooster\*\*:.+\n/, "")],
-    ["main-success-has-step", (text: string) => text.replace(/1\. \*\*developer\*\* requests validation\.\n2\. \*\*system\*\* validates the use case\.\n/, "")],
-    ["step-bold-actor-action", (text: string) => text.replace("1. **developer** requests validation.", "1. developer requests validation.")],
-    ["step-actor-exists", (text: string) => text.replace("**developer** requests", "**ghost** requests")],
-    ["stakeholder-reference-exists", (text: string) => text.replace("**Vooster**", "**Unknown Org**")],
-    ["primary-actor-exists", (text: string) => text.replace("primary_actor: developer", "primary_actor: ghost")],
-    ["extension-references-step", (text: string) => text.replace("### 2a.", "### 9a.")],
-    ["success-guarantee-present", (text: string) => text.replace("## Success Guarantee\n\nValidation findings are available.\n\n", "## Success Guarantee\n\n")],
-    ["minimal-guarantee-present", (text: string) => text.replace("## Minimal Guarantee\n\nThe source file is unchanged.\n", "## Minimal Guarantee\n\n")],
-    ["frontmatter-schema", (text: string) => text.replace("level: USER_GOAL", "level: WRONG")],
-    ["required-field", (text: string) => text.replace("## Trigger\n\nDeveloper needs confidence.\n\n", "## Trigger\n\n")],
+    [
+      "stakeholder-interest-present",
+      (text: string) => text.replace(/- \*\*Vooster\*\*:.+\n/, ""),
+    ],
+    [
+      "main-success-has-step",
+      (text: string) =>
+        text.replace(
+          /1\. \*\*developer\*\* requests validation\.\n2\. \*\*system\*\* validates the use case\.\n/,
+          "",
+        ),
+    ],
+    [
+      "step-bold-actor-action",
+      (text: string) =>
+        text.replace(
+          "1. **developer** requests validation.",
+          "1. developer requests validation.",
+        ),
+    ],
+    [
+      "step-actor-exists",
+      (text: string) =>
+        text.replace("**developer** requests", "**ghost** requests"),
+    ],
+    [
+      "stakeholder-reference-exists",
+      (text: string) => text.replace("**Vooster**", "**Unknown Org**"),
+    ],
+    [
+      "primary-actor-exists",
+      (text: string) =>
+        text.replace("primary_actor: developer", "primary_actor: ghost"),
+    ],
+    [
+      "extension-references-step",
+      (text: string) => text.replace("### 2a.", "### 9a."),
+    ],
+    [
+      "success-guarantee-present",
+      (text: string) =>
+        text.replace(
+          "## Success Guarantee\n\nValidation findings are available.\n\n",
+          "## Success Guarantee\n\n",
+        ),
+    ],
+    [
+      "minimal-guarantee-present",
+      (text: string) =>
+        text.replace(
+          "## Minimal Guarantee\n\nThe source file is unchanged.\n",
+          "## Minimal Guarantee\n\n",
+        ),
+    ],
+    [
+      "frontmatter-schema",
+      (text: string) => text.replace("level: USER_GOAL", "level: WRONG"),
+    ],
+    [
+      "required-field",
+      (text: string) =>
+        text.replace(
+          "## Trigger\n\nDeveloper needs confidence.\n\n",
+          "## Trigger\n\n",
+        ),
+    ],
   ])("flags %s", (rule, mutate) => {
-    const root = makeFixtureRoot(mutate(readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8")));
+    const root = makeFixtureRoot(
+      mutate(
+        readFileSync(
+          join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+          "utf8",
+        ),
+      ),
+    );
     const result = runDoctor({ root });
-    expect(result.findings.some((finding) => finding.rule === rule && finding.level === "error")).toBe(true);
+    expect(
+      result.findings.some(
+        (finding) => finding.rule === rule && finding.level === "error",
+      ),
+    ).toBe(true);
     rmSync(root, { recursive: true, force: true });
   });
 
   it("requires actor references to use the slug name, not the display name", () => {
     const root = makeFixtureRoot(
-      readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**developer** requests", "**개발자** requests"),
+      readFileSync(
+        join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+        "utf8",
+      ).replace("**developer** requests", "**개발자** requests"),
     );
     const result = runDoctor({ root });
-    expect(result.findings.some((finding) => finding.rule === "step-actor-exists" && finding.level === "error")).toBe(true);
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.rule === "step-actor-exists" && finding.level === "error",
+      ),
+    ).toBe(true);
     rmSync(root, { recursive: true, force: true });
   });
 
   it("requires stakeholder references to use the slug name, not the display name", () => {
     const root = makeFixtureRoot(
-      readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**Vooster**", "**부스터**"),
+      readFileSync(
+        join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+        "utf8",
+      ).replace("**Vooster**", "**부스터**"),
     );
     const result = runDoctor({ root });
-    expect(result.findings.some((finding) => finding.rule === "stakeholder-reference-exists" && finding.level === "error")).toBe(true);
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.rule === "stakeholder-reference-exists" &&
+          finding.level === "error",
+      ),
+    ).toBe(true);
     rmSync(root, { recursive: true, force: true });
   });
 
   it("makes stakeholder reference errors self-teaching with the available slugs", () => {
     const root = makeFixtureRoot(
-      readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**Vooster**", "**부스터**"),
+      readFileSync(
+        join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+        "utf8",
+      ).replace("**Vooster**", "**부스터**"),
     );
-    const finding = runDoctor({ root }).findings.find((f) => f.rule === "stakeholder-reference-exists");
+    const finding = runDoctor({ root }).findings.find(
+      (f) => f.rule === "stakeholder-reference-exists",
+    );
     expect(finding?.message).toContain("Available stakeholder slugs: vooster");
-    expect(finding?.message).toContain("Reference the slug, not the display name");
+    expect(finding?.message).toContain(
+      "Reference the slug, not the display name",
+    );
     rmSync(root, { recursive: true, force: true });
   });
 
   it("makes actor reference errors self-teaching with the available slugs", () => {
     const root = makeFixtureRoot(
-      readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**developer** requests", "**개발자** requests"),
+      readFileSync(
+        join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+        "utf8",
+      ).replace("**developer** requests", "**개발자** requests"),
     );
-    const finding = runDoctor({ root }).findings.find((f) => f.rule === "step-actor-exists");
-    expect(finding?.message).toContain("Available actor slugs: developer, system");
+    const finding = runDoctor({ root }).findings.find(
+      (f) => f.rule === "step-actor-exists",
+    );
+    expect(finding?.message).toContain(
+      "Available actor slugs: developer, system",
+    );
     rmSync(root, { recursive: true, force: true });
   });
 
@@ -74,17 +171,28 @@ describe("doctor validation", () => {
     mkdirSync(join(root, "specs/actors"), { recursive: true });
     mkdirSync(join(root, "specs/stakeholders"), { recursive: true });
     mkdirSync(join(root, "specs/usecases"), { recursive: true });
-    writeFileSync(join(root, "specs/actors/developer.md"), readFileSync(join(cleanRoot, "specs/actors/developer.md")));
-    writeFileSync(join(root, "specs/actors/system.md"), readFileSync(join(cleanRoot, "specs/actors/system.md")));
+    writeFileSync(
+      join(root, "specs/actors/developer.md"),
+      readFileSync(join(cleanRoot, "specs/actors/developer.md")),
+    );
+    writeFileSync(
+      join(root, "specs/actors/system.md"),
+      readFileSync(join(cleanRoot, "specs/actors/system.md")),
+    );
     writeFileSync(
       join(root, "specs/stakeholders/reader-community.md"),
       "---\nvspec_format: 1\ntype: stakeholder\nname: reader-community\ndisplay_name: 독자 커뮤니티\nstakeholder_type: EXTERNAL\n---\n독자 커뮤니티 stakeholder.\n",
     );
     writeFileSync(
       join(root, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
-      readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**Vooster**", "**독자 커뮤니티**"),
+      readFileSync(
+        join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+        "utf8",
+      ).replace("**Vooster**", "**독자 커뮤니티**"),
     );
-    const finding = runDoctor({ root }).findings.find((f) => f.rule === "stakeholder-reference-exists");
+    const finding = runDoctor({ root }).findings.find(
+      (f) => f.rule === "stakeholder-reference-exists",
+    );
     expect(finding?.message).toContain("is a display name");
     expect(finding?.message).toContain("reference the slug `reader-community`");
     rmSync(root, { recursive: true, force: true });
@@ -92,39 +200,71 @@ describe("doctor validation", () => {
 
   it("suggests listing existing slugs, never a broken --name create from a display name", () => {
     const root = makeFixtureRoot(
-      readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8").replace("**Vooster**", "**부스터**"),
+      readFileSync(
+        join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+        "utf8",
+      ).replace("**Vooster**", "**부스터**"),
     );
     const tsx = join(import.meta.dirname, "../node_modules/.bin/tsx");
     const cli = join(import.meta.dirname, "../src/cli.ts");
     let stdout = "";
     try {
-      stdout = execFileSync(tsx, [cli, "doctor"], { cwd: root, encoding: "utf8" });
+      stdout = execFileSync(tsx, [cli, "doctor"], {
+        cwd: root,
+        encoding: "utf8",
+      });
     } catch (error) {
       stdout = (error as { stdout: string }).stdout;
     }
-    const commands = (JSON.parse(stdout).suggested_next_actions as { command: string }[]).map((action) => action.command);
+    const commands = (
+      JSON.parse(stdout).suggested_next_actions as { command: string }[]
+    ).map((action) => action.command);
     expect(commands).toContain("vspec stakeholder list");
-    expect(commands.some((command) => /--name\s*-/.test(command) || /--name\s*$/.test(command))).toBe(false);
+    expect(
+      commands.some(
+        (command) => /--name\s*-/.test(command) || /--name\s*$/.test(command),
+      ),
+    ).toBe(false);
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
 
   it("warns for lower maturity required fields without failing", () => {
-    const text = readFileSync(join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"), "utf8")
+    const text = readFileSync(
+      join(cleanRoot, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+      "utf8",
+    )
       .replace("format: FULLY_DRESSED", "format: BRIEF")
-      .replace("## Trigger\n\nDeveloper needs confidence.\n\n", "## Trigger\n\n");
+      .replace(
+        "## Trigger\n\nDeveloper needs confidence.\n\n",
+        "## Trigger\n\n",
+      );
     const root = makeFixtureRoot(text);
     const result = runDoctor({ root });
-    expect(result.findings.some((finding) => finding.rule === "required-field" && finding.level === "warn")).toBe(true);
-    expect(result.findings.some((finding) => finding.level === "error")).toBe(false);
+    expect(
+      result.findings.some(
+        (finding) =>
+          finding.rule === "required-field" && finding.level === "warn",
+      ),
+    ).toBe(true);
+    expect(result.findings.some((finding) => finding.level === "error")).toBe(
+      false,
+    );
     rmSync(root, { recursive: true, force: true });
   });
 
   it("cli exits 0 on the clean fixture dir", () => {
-    const output = execFileSync("pnpm", ["exec", "tsx", join(import.meta.dirname, "../src/cli.ts"), "doctor"], {
-      cwd: cleanRoot,
-      encoding: "utf8",
-    });
-    const envelope = JSON.parse(output) as { status: string; data: { summary: { errors: number } } };
+    const output = execFileSync(
+      "pnpm",
+      ["exec", "tsx", join(import.meta.dirname, "../src/cli.ts"), "doctor"],
+      {
+        cwd: cleanRoot,
+        encoding: "utf8",
+      },
+    );
+    const envelope = JSON.parse(output) as {
+      status: string;
+      data: { summary: { errors: number } };
+    };
     expect(envelope.status).toBe("ok");
     expect(envelope.data.summary.errors).toBe(0);
   });
@@ -135,9 +275,21 @@ function makeFixtureRoot(useCaseText: string): string {
   mkdirSync(join(root, "specs/actors"), { recursive: true });
   mkdirSync(join(root, "specs/stakeholders"), { recursive: true });
   mkdirSync(join(root, "specs/usecases"), { recursive: true });
-  writeFileSync(join(root, "specs/actors/developer.md"), readFileSync(join(cleanRoot, "specs/actors/developer.md")));
-  writeFileSync(join(root, "specs/actors/system.md"), readFileSync(join(cleanRoot, "specs/actors/system.md")));
-  writeFileSync(join(root, "specs/stakeholders/vooster.md"), readFileSync(join(cleanRoot, "specs/stakeholders/vooster.md")));
-  writeFileSync(join(root, "specs/usecases/VSPEC-001-validate-a-use-case.md"), useCaseText);
+  writeFileSync(
+    join(root, "specs/actors/developer.md"),
+    readFileSync(join(cleanRoot, "specs/actors/developer.md")),
+  );
+  writeFileSync(
+    join(root, "specs/actors/system.md"),
+    readFileSync(join(cleanRoot, "specs/actors/system.md")),
+  );
+  writeFileSync(
+    join(root, "specs/stakeholders/vooster.md"),
+    readFileSync(join(cleanRoot, "specs/stakeholders/vooster.md")),
+  );
+  writeFileSync(
+    join(root, "specs/usecases/VSPEC-001-validate-a-use-case.md"),
+    useCaseText,
+  );
   return root;
 }

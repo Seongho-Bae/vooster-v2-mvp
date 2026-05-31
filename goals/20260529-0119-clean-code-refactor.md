@@ -95,9 +95,9 @@ pnpm test && pnpm typecheck
 - **테스트 수를 늘리기보다 기존 fixture를 재사용**한다. 이미 `tests/fixtures/usecases/`
   와 규칙별/라운드트립/엔벨로프 테스트가 있다. 같은 것을 중복 작성하지 않는다.
 - **characterization 테스트의 수명을 구분**한다:
-  - *영구 유지*: doctor findings 스냅샷, 명령별 엔벨로프 스냅샷(리팩터 후에도 회귀
+  - _영구 유지_: doctor findings 스냅샷, 명령별 엔벨로프 스냅샷(리팩터 후에도 회귀
     가치가 큼).
-  - *임시 비계*: 특정 내부 함수 형태에만 묶인 테스트는 그 Phase가 끝나면 제거해
+  - _임시 비계_: 특정 내부 함수 형태에만 묶인 테스트는 그 Phase가 끝나면 제거해
     스위트를 군살 없이 둔다. 제거도 커밋에 명시한다.
 - 게이트가 **수 초**를 넘기기 시작하면 무언가 잘못된 것이다 — 무거운 테스트를 추가하지
   말고 원인을 줄인다.
@@ -121,19 +121,19 @@ pnpm test && pnpm typecheck
 
 ## 작업 대상 정확 위치 (압축 후에도 자급되도록 명시)
 
-| 키 | 현재 상태(파일:대략 위치) | 목표 |
-|---|---|---|
-| mustConfig | `entity-commands.ts`의 `mustConfig`(읽기+`NOT_INITIALIZED` 가드)만 존재. `usecase-commands.ts`(createUseCase/listUseCases/showUseCase 3곳), `mutators.ts`(updateUseCase), `export/gherkin.ts`가 인라인 복붙 | `files.ts`에 단일 `requireConfig()` export, 모든 인라인 가드 교체 |
-| 디렉터리 상수 | `"specs/actors"|stakeholders|goals|usecases"`, `"specs/glossary.md"`가 `files.ts`/`project.ts`/`validate/doctor.ts`/`entity-commands.ts`/`usecase-commands.ts`/`keys.ts`에 산재 | `files.ts`에 `SPEC_DIRS` 상수, 전부 참조로 |
-| displayName | `entity-commands.ts:~297`(필터 없음) vs `usecase-commands.ts:~154`(`.filter(Boolean)` 있음) — **분기됨** | `slug.ts`로 단일화. **채택 동작 = `.filter(Boolean)` 버전**(`a--b`/끝 하이픈에서 빈 조각 제거) |
-| findGoalFile | `entity-commands.ts:~237`(`basename().startsWith(id+"-")`) vs `usecase-commands.ts:~132`(`path.includes(id+"-")`) — **분기됨** | `files.ts`로 단일화, `findUseCaseFile` 옆. **채택 동작 = 엄격한 `basename + startsWith`**(느슨한 includes 오매칭 제거) |
-| trimTrailingWhitespace | `format/parse.ts:~113`와 `format/serialize.ts:~70`에 바이트 동일 사본 | 공용 유틸 1개로, 양쪽 import |
-| enum 파서 (B) | `entity-commands.ts`의 `parseLevel`/`parsePriority`/`parseActorType`/`parseStakeholderType`/`validatedActorType`/`validatedStakeholderType`/`validatedBool`, `usecase-commands.ts`의 `parseLevel`/`parsePriority`, `mutators.ts`의 `validatedEnum` | 단일 `parseEnum`(+ 기존 zod 스키마 재사용)로 통합. 항상 **친절한 `VspecError`** 던짐 |
-| promoteGoal (G) | `entity-commands.ts:~198`(public, title을 `readFileSync(...).split("---").pop()`로 추출 — `---` 포함 본문에서 깨짐) + `usecase-commands.ts:~136`(private, 동명이인) | title은 `parseMatter().content`로 정상 추출. private 쪽을 `markGoalPromoted` 등으로 개명해 동명이인 제거 |
-| 에러 코드 타입 | `throw new Error("KEY_NOT_FOUND")` 등 stringly-typed 다수 + `output.ts`의 `errorInfo`가 문자열 매칭. `VspecError`와 `new Error("CODE")` 혼재 | `ErrorCode` union 타입 도입, `VspecError`가 받음, `errorInfo` switch를 exhaustive로(컴파일러가 누락/오타 강제 검출) |
-| doctor 분해 | `validate/doctor.ts`의 `validateUseCase`(~20개 검사 한 함수) + 로더(`readEntityIndex`/`readGlossary`) + 품질 휴리스틱 + `looksLikeVerbPhrase`/`containsHangul`(후자는 `cli.ts`가 import) 혼재 | 규칙을 `(useCase, ctx) => Finding[]` 배열로 분해, 로더 분리, 휴리스틱은 도메인 쪽으로. **findings 출력은 완전 동일 유지** |
-| doctor→runCommand | `cli.ts:~57` doctor 액션만 `runCommand` 미경유 + try/catch 없음(throw 시 최상위 핸들러가 엉뚱한 `INVALID_ARGUMENT`로 매핑) | doctor도 일관된 경로로, 올바른 에러 코드 매핑 |
-| cli payload 추출 | `cli.ts`의 `suggestDoctorActions`/`runCommand`/`entityPayload`/`mutationPayload`/`entityMutationPayload`/`applyPayload`가 명령 트리와 뒤섞임 | payload 가공 로직을 별도 모듈로 분리, `cli.ts`는 명령 선언에 집중 |
+| 키                     | 현재 상태(파일:대략 위치)                                                                                                                                                                                                                          | 목표                                                                                                                      |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| mustConfig             | `entity-commands.ts`의 `mustConfig`(읽기+`NOT_INITIALIZED` 가드)만 존재. `usecase-commands.ts`(createUseCase/listUseCases/showUseCase 3곳), `mutators.ts`(updateUseCase), `export/gherkin.ts`가 인라인 복붙                                        | `files.ts`에 단일 `requireConfig()` export, 모든 인라인 가드 교체                                                         |
+| 디렉터리 상수          | `"specs/actors"                                                                                                                                                                                                                                    | stakeholders                                                                                                              | goals | usecases"`, `"specs/glossary.md"`가 `files.ts`/`project.ts`/`validate/doctor.ts`/`entity-commands.ts`/`usecase-commands.ts`/`keys.ts`에 산재 | `files.ts`에 `SPEC_DIRS` 상수, 전부 참조로 |
+| displayName            | `entity-commands.ts:~297`(필터 없음) vs `usecase-commands.ts:~154`(`.filter(Boolean)` 있음) — **분기됨**                                                                                                                                           | `slug.ts`로 단일화. **채택 동작 = `.filter(Boolean)` 버전**(`a--b`/끝 하이픈에서 빈 조각 제거)                            |
+| findGoalFile           | `entity-commands.ts:~237`(`basename().startsWith(id+"-")`) vs `usecase-commands.ts:~132`(`path.includes(id+"-")`) — **분기됨**                                                                                                                     | `files.ts`로 단일화, `findUseCaseFile` 옆. **채택 동작 = 엄격한 `basename + startsWith`**(느슨한 includes 오매칭 제거)    |
+| trimTrailingWhitespace | `format/parse.ts:~113`와 `format/serialize.ts:~70`에 바이트 동일 사본                                                                                                                                                                              | 공용 유틸 1개로, 양쪽 import                                                                                              |
+| enum 파서 (B)          | `entity-commands.ts`의 `parseLevel`/`parsePriority`/`parseActorType`/`parseStakeholderType`/`validatedActorType`/`validatedStakeholderType`/`validatedBool`, `usecase-commands.ts`의 `parseLevel`/`parsePriority`, `mutators.ts`의 `validatedEnum` | 단일 `parseEnum`(+ 기존 zod 스키마 재사용)로 통합. 항상 **친절한 `VspecError`** 던짐                                      |
+| promoteGoal (G)        | `entity-commands.ts:~198`(public, title을 `readFileSync(...).split("---").pop()`로 추출 — `---` 포함 본문에서 깨짐) + `usecase-commands.ts:~136`(private, 동명이인)                                                                                | title은 `parseMatter().content`로 정상 추출. private 쪽을 `markGoalPromoted` 등으로 개명해 동명이인 제거                  |
+| 에러 코드 타입         | `throw new Error("KEY_NOT_FOUND")` 등 stringly-typed 다수 + `output.ts`의 `errorInfo`가 문자열 매칭. `VspecError`와 `new Error("CODE")` 혼재                                                                                                       | `ErrorCode` union 타입 도입, `VspecError`가 받음, `errorInfo` switch를 exhaustive로(컴파일러가 누락/오타 강제 검출)       |
+| doctor 분해            | `validate/doctor.ts`의 `validateUseCase`(~20개 검사 한 함수) + 로더(`readEntityIndex`/`readGlossary`) + 품질 휴리스틱 + `looksLikeVerbPhrase`/`containsHangul`(후자는 `cli.ts`가 import) 혼재                                                      | 규칙을 `(useCase, ctx) => Finding[]` 배열로 분해, 로더 분리, 휴리스틱은 도메인 쪽으로. **findings 출력은 완전 동일 유지** |
+| doctor→runCommand      | `cli.ts:~57` doctor 액션만 `runCommand` 미경유 + try/catch 없음(throw 시 최상위 핸들러가 엉뚱한 `INVALID_ARGUMENT`로 매핑)                                                                                                                         | doctor도 일관된 경로로, 올바른 에러 코드 매핑                                                                             |
+| cli payload 추출       | `cli.ts`의 `suggestDoctorActions`/`runCommand`/`entityPayload`/`mutationPayload`/`entityMutationPayload`/`applyPayload`가 명령 트리와 뒤섞임                                                                                                       | payload 가공 로직을 별도 모듈로 분리, `cli.ts`는 명령 선언에 집중                                                         |
 
 ---
 
@@ -147,7 +147,7 @@ pnpm test && pnpm typecheck
 **Objective:** 이후 리팩터가 기댈 골든 마스터를 green으로 박는다.
 
 - `P0-T1` `tests/fixtures/usecases/` 전체에 대해 `runDoctor` findings(`{rule, level,
-  message, location}` 정렬 배열)를 스냅샷하는 테스트 추가. location은 상대경로로 정규화.
+message, location}` 정렬 배열)를 스냅샷하는 테스트 추가. location은 상대경로로 정규화.
 - `P0-T2` 주요 명령(`init`, `usecase create`, `usecase apply`, `usecase set`,
   `actor create`, `stakeholder create`, `goal create`, `goal promote`,
   `doctor`, `export gherkin`)을 `run()`으로 호출해 **엔벨로프를 정규화 후 스냅샷**하는

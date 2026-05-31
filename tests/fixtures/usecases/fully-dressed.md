@@ -11,11 +11,12 @@ scope: vspec
 primary_actor: developer
 frequency: daily
 ---
+
 # Validate a use case
 
 ## Stakeholders and Interests
 
-- **Vooster**: specs stay trustworthy. _(Protected by: step 2)
+- **Vooster**: specs stay trustworthy. \_(Protected by: step 2)
 - **Developer**: errors are actionable.
 
 ## Preconditions

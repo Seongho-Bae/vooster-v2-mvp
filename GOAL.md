@@ -33,6 +33,7 @@ expected exit). Do not advance with a red gate.
 **Objective:** a runnable empty `vspec` binary and a green test runner.
 
 Tasks:
+
 - `P0-T1` Init the package: `package.json` (`"type": "module"`, bin `vspec`),
   `tsconfig.json` (strict, NodeNext), `pnpm` install of `commander`,
   `gray-matter`, `zod`, and dev `vitest`, `prettier`, `typescript`, `tsx`.
@@ -53,6 +54,7 @@ exits 0 and lists at least one command stub.
 `ParsedUseCase` and serialize it back, satisfying the round-trip guarantee.
 
 Tasks:
+
 - `P1-T1` Frontmatter: parse/stringify via `gray-matter`; validate via zod
   schemas (`src/format/frontmatter.ts`). Fixed key order on output.
 - `P1-T2` Body parser (`src/format/parse.ts`): blurb, stakeholder interests
@@ -75,6 +77,7 @@ Tasks:
 **Objective:** validate files against the Cockburn rule table with no network.
 
 Tasks:
+
 - `P2-T1` Validation engine (`src/validate/doctor.ts`): one discrete check per
   row of the `What doctor Enforces` table in `01-cockburn.md`, each returning a
   finding `{ rule, level: "error"|"warn", message, location }`.
@@ -96,6 +99,7 @@ with the agent submitting the body through the CLI and the CLI doing keys +
 validation + display.
 
 Tasks:
+
 - `P3-T1` `vspec init [--key <PREFIX>]`: write `.vspec/config.json` + `specs/`
   subdirs; idempotent; resolve config from cwd upward.
 - `P3-T2` `vspec usecase create`: allocate next `<PREFIX>-NNN`, derive slug,
@@ -113,6 +117,7 @@ file → asserts it round-trips (`serialize(parse(F)) === normalize(F)`) and tha
 dressed use case is reachable through the CLI alone (hand-editing is not a path).
 
 Tasks:
+
 - `P4-T1` `actor create|list|show`, `stakeholder create|list|show` (file CRUD,
   slug filenames, zod-validated frontmatter, `ALREADY_EXISTS` guard).
 - `P4-T2` `goal create|list|show|promote|reject`; `promote` flips status to
@@ -132,6 +137,7 @@ commands (actor + stakeholder + create + `usecase apply --section`), then
 `suggested_next_actions`; a fresh agent can self-onboard.
 
 Tasks:
+
 - `P5-T1` Thread `--format=agent|json|human` through every command via a shared
   output helper; map each error to a stable `error.code` from
   `04-agent-envelope.md`.
@@ -149,11 +155,12 @@ suggestion.
 **Objective:** turn a use case into a `.feature` file.
 
 Tasks:
+
 - `P6-T1` Gherkin renderer (`src/export/gherkin.ts`): `Feature:` line,
   `Background: Given the use case is in scope <scope>`, `Scenario: Main success`
   with `When <Actor> <action>` lines, and one `Scenario:` per extension with
   `Given main success reaches step N`, the `When` lines, and `Then outcome is
-  <OUTCOME>`. (Mirror the format in the original `gherkin-renderer`.)
+<OUTCOME>`. (Mirror the format in the original `gherkin-renderer`.)
 - `P6-T2` `vspec export gherkin <KEY> [--output <path>]`; default
   `tests/<KEY>.feature`; `--format=agent` puts the text in `data` and the path
   in `affected_files`.
@@ -166,8 +173,9 @@ expected `.feature`.
 **Objective:** prove the loop on real content — vspec's own specs.
 
 Tasks:
+
 - `P7-T1` `vspec init --key VSPEC` at repo root.
-- `P7-T2` Author ≥5 real use cases for *this project* (the authoring tool
+- `P7-T2` Author ≥5 real use cases for _this project_ (the authoring tool
   itself) via the CLI — `usecase create` then `usecase apply` (never hand-editing).
   Suggested seeds: "Author a use case", "Validate specs", "Export to Gherkin",
   "Scaffold a project", "Promote a goal to a use case". Include actors &

@@ -9,7 +9,12 @@ import type {
 
 export const levelSchema = z.enum(["SUMMARY", "USER_GOAL", "SUBFUNCTION"]);
 export const formatSchema = z.enum(["BRIEF", "CASUAL", "FULLY_DRESSED"]);
-export const statusSchema = z.enum(["DRAFT", "IN_REVIEW", "APPROVED", "DEPRECATED"]);
+export const statusSchema = z.enum([
+  "DRAFT",
+  "IN_REVIEW",
+  "APPROVED",
+  "DEPRECATED",
+]);
 export const prioritySchema = z.enum(["P0", "P1", "P2", "P3"]);
 
 export const useCaseFrontmatterSchema = z.object({
@@ -55,7 +60,10 @@ export const goalFrontmatterSchema = z.object({
   linked_usecase: z.string().min(1).optional(),
 });
 
-export function parseMatter(text: string): { data: Record<string, unknown>; content: string } {
+export function parseMatter(text: string): {
+  data: Record<string, unknown>;
+  content: string;
+} {
   const parsed = matter(text);
   return { data: parsed.data, content: parsed.content };
 }
@@ -68,7 +76,9 @@ export function parseActorFrontmatter(data: unknown): ActorFrontmatter {
   return actorFrontmatterSchema.parse(data);
 }
 
-export function parseStakeholderFrontmatter(data: unknown): StakeholderFrontmatter {
+export function parseStakeholderFrontmatter(
+  data: unknown,
+): StakeholderFrontmatter {
   return stakeholderFrontmatterSchema.parse(data);
 }
 
@@ -76,7 +86,9 @@ export function parseGoalFrontmatter(data: unknown): GoalFrontmatter {
   return goalFrontmatterSchema.parse(data);
 }
 
-export function orderUseCaseFrontmatter(fm: UseCaseFrontmatter): UseCaseFrontmatter {
+export function orderUseCaseFrontmatter(
+  fm: UseCaseFrontmatter,
+): UseCaseFrontmatter {
   return {
     vspec_format: 1,
     type: "usecase",
@@ -104,7 +116,9 @@ export function orderActorFrontmatter(fm: ActorFrontmatter): ActorFrontmatter {
   };
 }
 
-export function orderStakeholderFrontmatter(fm: StakeholderFrontmatter): StakeholderFrontmatter {
+export function orderStakeholderFrontmatter(
+  fm: StakeholderFrontmatter,
+): StakeholderFrontmatter {
   return {
     vspec_format: 1,
     type: "stakeholder",
@@ -127,6 +141,9 @@ export function orderGoalFrontmatter(fm: GoalFrontmatter): GoalFrontmatter {
   };
 }
 
-export function stringifyFrontmatter(data: Record<string, unknown>, body: string): string {
+export function stringifyFrontmatter(
+  data: Record<string, unknown>,
+  body: string,
+): string {
   return matter.stringify(body, data);
 }

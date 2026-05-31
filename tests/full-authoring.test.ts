@@ -12,14 +12,52 @@ describe("fully dressed CLI authoring", () => {
     const tsx = join(repoRoot, "node_modules/.bin/tsx");
     const cli = join(repoRoot, "src/cli.ts");
     mkdirSync(root, { recursive: true });
-    const run = (...args: string[]) => execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" });
-    const apply = (input: string, ...args: string[]) => execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8", input });
+    const run = (...args: string[]) =>
+      execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" });
+    const apply = (input: string, ...args: string[]) =>
+      execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8", input });
 
     run("init", "--key", "VSPEC");
-    run("actor", "create", "--name", "customer", "--display-name", "Customer", "--type", "primary", "--human");
-    run("stakeholder", "create", "--name", "business", "--display-name", "Business", "--type", "internal");
-    run("usecase", "create", "--title", "Place an order", "--primary-actor", "customer", "--priority", "p0");
-    run("usecase", "set", "VSPEC-001", "--field", "format", "--value", "FULLY_DRESSED");
+    run(
+      "actor",
+      "create",
+      "--name",
+      "customer",
+      "--display-name",
+      "Customer",
+      "--type",
+      "primary",
+      "--human",
+    );
+    run(
+      "stakeholder",
+      "create",
+      "--name",
+      "business",
+      "--display-name",
+      "Business",
+      "--type",
+      "internal",
+    );
+    run(
+      "usecase",
+      "create",
+      "--title",
+      "Place an order",
+      "--primary-actor",
+      "customer",
+      "--priority",
+      "p0",
+    );
+    run(
+      "usecase",
+      "set",
+      "VSPEC-001",
+      "--field",
+      "format",
+      "--value",
+      "FULLY_DRESSED",
+    );
     apply(
       "- **project-team**: 요청한 기능이 검증 가능한 use case 계약으로 기록된다. _(Protected by: Success Guarantee)_\n- **business**: orders are captured accurately _(Protected by: step 2)_\n",
       "usecase",

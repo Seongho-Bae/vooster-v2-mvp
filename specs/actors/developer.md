@@ -6,4 +6,5 @@ display_name: Developer
 actor_type: PRIMARY
 is_human: true
 ---
+
 Developer actor.
