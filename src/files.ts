@@ -34,6 +34,7 @@ export function projectKey(start = process.cwd()): string | null {
 }
 
 // ⚡ Bolt: Use { withFileTypes: true } to avoid costly statSync calls per file
+// Fallback to statSync only for symbolic links to correctly identify and follow linked directories
 export function walkFiles(
   root: string,
   predicate: (path: string) => boolean,
@@ -42,11 +43,16 @@ export function walkFiles(
   const files: string[] = [];
   for (const entry of readdirSync(root, { withFileTypes: true })) {
     const path = join(root, entry.name);
-    const isDir =
-      entry.isDirectory() ||
-      (entry.isSymbolicLink() && statSync(path, { throwIfNoEntry: false })?.isDirectory());
+    let isDir = entry.isDirectory();
+    if (entry.isSymbolicLink()) {
+      try {
+        isDir = statSync(path).isDirectory();
+      } catch {
+        // Ignore broken symlinks
+      }
+    }
     if (isDir) files.push(...walkFiles(path, predicate));
-    else if (predicate(path)) files.push(path);
+    else if (!isDir && predicate(path)) files.push(path);
   }
   return files.sort();
 }
