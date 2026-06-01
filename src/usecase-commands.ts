@@ -1,4 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
   orderActorFrontmatter,
@@ -84,11 +85,19 @@ export function createUseCase(args: {
   return { key, path: relativePath(path, root), format: "BRIEF" as const, affectedFiles };
 }
 
-export function listUseCases(args: { cwd?: string; status?: string; actor?: string; level?: string; q?: string }) {
+export async function listUseCases(args: { cwd?: string; status?: string; actor?: string; level?: string; q?: string }) {
   const config = readConfig(args.cwd ?? process.cwd());
   if (!config) throw new Error("NOT_INITIALIZED");
-  return walkFiles(join(config.root, "specs/usecases"), (path) => path.endsWith(".md"))
-    .map((path) => ({ path, parsed: parseUseCaseMarkdown(readFileSync(path, "utf8")) }))
+
+  const files = walkFiles(join(config.root, "specs/usecases"), (path) => path.endsWith(".md"));
+  const parsedFiles = await Promise.all(
+    files.map(async (path) => ({
+      path,
+      parsed: parseUseCaseMarkdown(await readFile(path, "utf8")),
+    }))
+  );
+
+  return parsedFiles
     .filter(({ parsed }) => !args.status || parsed.frontmatter.status === args.status.toUpperCase())
     .filter(({ parsed }) => !args.actor || parsed.frontmatter.primary_actor === slugify(args.actor!))
     .filter(({ parsed }) => !args.level || parsed.frontmatter.level === parseLevel(args.level!))
