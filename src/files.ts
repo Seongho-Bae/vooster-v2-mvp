@@ -48,6 +48,7 @@ export function walkFiles(
       try {
         isDir = statSync(path).isDirectory();
       } catch {
+        // Ignore broken symlinks
         continue;
       }
     }
