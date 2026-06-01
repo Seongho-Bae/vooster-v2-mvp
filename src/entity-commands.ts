@@ -1,3 +1,4 @@
+import { promises as fsPromises } from "node:fs";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import {
@@ -36,12 +37,21 @@ export function createActor(args: { name: string; displayName?: string; type?: s
   return { name, path: relativePath(path, root) };
 }
 
-export function listActors(args: { cwd?: string }) {
+
+
+export async function listActors(args: { cwd?: string }) {
   const { root } = mustConfig(args.cwd);
-  return walkFiles(join(root, "specs/actors"), (path) => path.endsWith(".md")).map((path) => ({
-    ...parseActorFrontmatter(parseMatter(readFileSync(path, "utf8")).data),
-    path: relativePath(path, root),
-  }));
+  const files = walkFiles(join(root, "specs/actors"), (path) => path.endsWith(".md"));
+  const actors = await Promise.all(
+    files.map(async (path) => {
+      const content = await fsPromises.readFile(path, "utf8");
+      return {
+        ...parseActorFrontmatter(parseMatter(content).data),
+        path: relativePath(path, root),
+      };
+    })
+  );
+  return actors;
 }
 
 export function showActor(args: { name: string; cwd?: string }) {

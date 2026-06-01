@@ -307,9 +307,9 @@ function suggestDoctorActions(findings: { rule: string; message: string }[]) {
   return actions;
 }
 
-function runCommand<T>(
-  fn: () => T,
-  payload: (data: T) => {
+async function runCommand<T>(
+  fn: () => T | Promise<T>,
+  payload: (data: Awaited<T>) => {
     data: unknown;
     affectedFiles?: { path: string }[];
     warnings?: { message: string }[];
@@ -317,7 +317,8 @@ function runCommand<T>(
   },
 ) {
   try {
-    outputSuccess(payload(fn()));
+    const result = await fn();
+    outputSuccess(payload(result as Awaited<T>));
   } catch (error) {
     const info = errorInfo(error);
     outputError({ code: info.code, message: info.message, details: info.details, actions: info.actions });
