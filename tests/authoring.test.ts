@@ -11,7 +11,7 @@ import { normalizeUseCaseMarkdown } from "../src/format/normalize.js";
 import { runDoctor } from "../src/validate/doctor.js";
 
 describe("use-case authoring loop", () => {
-  it("runs init -> usecase create -> round-trip -> doctor with no errors", () => {
+  it("runs init -> usecase create -> round-trip -> doctor with no errors", async () => {
     const root = join(tmpdir(), `vspec-authoring-${crypto.randomUUID()}`);
     mkdirSync(root, { recursive: true });
     initProject({ root, key: "VSPEC" });
@@ -19,7 +19,7 @@ describe("use-case authoring loop", () => {
     const file = readFileSync(join(root, created.path), "utf8");
     expect(serializeUseCase(parseUseCaseMarkdown(file))).toBe(normalizeUseCaseMarkdown(file));
     expect(runDoctor({ root, target: created.key }).findings.filter((finding) => finding.level === "error")).toEqual([]);
-    expect(listUseCases({ cwd: root })).toHaveLength(1);
+    expect(await listUseCases({ cwd: root })).toHaveLength(1);
     expect(showUseCase({ cwd: root, key: created.key }).useCase.frontmatter.title).toBe("Author a use case");
     rmSync(root, { recursive: true, force: true });
   });
