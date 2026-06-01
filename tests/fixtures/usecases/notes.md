@@ -10,6 +10,7 @@ priority: P3
 scope: vspec
 primary_actor: developer
 ---
+
 # Preserve notes
 
 ## Stakeholders and Interests

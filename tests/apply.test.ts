@@ -13,7 +13,9 @@ const cli = join(repoRoot, "src/cli.ts");
 let root: string;
 const ucPath = () => {
   const dir = join(root, "specs/usecases");
-  const file = readdirSync(dir).find((name) => name.startsWith("VSPEC-001") && name.endsWith(".md"));
+  const file = readdirSync(dir).find(
+    (name) => name.startsWith("VSPEC-001") && name.endsWith(".md"),
+  );
   return join(dir, file!);
 };
 
@@ -21,13 +23,33 @@ function run(...args: string[]): string {
   return execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" });
 }
 
-function apply(input: string, ...args: string[]): { status: string; warnings: { message: string }[]; suggested_next_actions: { command: string }[] } {
-  return JSON.parse(execFileSync(tsx, [cli, "usecase", "apply", ...args], { cwd: root, encoding: "utf8", input }));
+function apply(
+  input: string,
+  ...args: string[]
+): {
+  status: string;
+  warnings: { message: string }[];
+  suggested_next_actions: { command: string }[];
+} {
+  return JSON.parse(
+    execFileSync(tsx, [cli, "usecase", "apply", ...args], {
+      cwd: root,
+      encoding: "utf8",
+      input,
+    }),
+  );
 }
 
-function applyError(input: string, ...args: string[]): { error?: { code: string; message: string } } {
+function applyError(
+  input: string,
+  ...args: string[]
+): { error?: { code: string; message: string } } {
   try {
-    execFileSync(tsx, [cli, "usecase", "apply", ...args], { cwd: root, encoding: "utf8", input });
+    execFileSync(tsx, [cli, "usecase", "apply", ...args], {
+      cwd: root,
+      encoding: "utf8",
+      input,
+    });
     throw new Error("expected command to fail");
   } catch (error) {
     return JSON.parse((error as { stdout: Buffer }).stdout.toString());
@@ -39,15 +61,34 @@ describe("usecase apply is the validated write gateway", () => {
     root = join(tmpdir(), `vspec-apply-${crypto.randomUUID()}`);
     mkdirSync(root, { recursive: true });
     run("init", "--key", "VSPEC");
-    run("actor", "create", "--name", "developer", "--display-name", "Developer");
-    run("usecase", "create", "--title", "리뷰를 승인한다", "--primary-actor", "developer");
+    run(
+      "actor",
+      "create",
+      "--name",
+      "developer",
+      "--display-name",
+      "Developer",
+    );
+    run(
+      "usecase",
+      "create",
+      "--title",
+      "리뷰를 승인한다",
+      "--primary-actor",
+      "developer",
+    );
   });
   afterEach(() => rmSync(root, { recursive: true, force: true }));
 
   it("replaces one section and leaves the others intact", () => {
     const before = readFileSync(ucPath(), "utf8");
     expect(before).not.toContain("## Notes"); // skeleton omits the optional Notes section
-    const env = apply("재고 정책은 별도 use case로 분리한다.", "VSPEC-001", "--section", "notes");
+    const env = apply(
+      "재고 정책은 별도 use case로 분리한다.",
+      "VSPEC-001",
+      "--section",
+      "notes",
+    );
     expect(env.status).toBe("ok");
     const after = readFileSync(ucPath(), "utf8");
     expect(after).toContain("## Notes");
@@ -77,7 +118,11 @@ describe("usecase apply is the validated write gateway", () => {
     const env = apply(body, "VSPEC-001");
     expect(env.status).toBe("ok");
     // A whole-body apply nudges toward per-section edits for next time.
-    expect(env.suggested_next_actions.some((a) => /apply VSPEC-001 --section/.test(a.command))).toBe(true);
+    expect(
+      env.suggested_next_actions.some((a) =>
+        /apply VSPEC-001 --section/.test(a.command),
+      ),
+    ).toBe(true);
     const after = readFileSync(ucPath(), "utf8");
     expect(after).toContain("key: VSPEC-001");
     expect(after).toContain("primary_actor: developer");
@@ -100,13 +145,25 @@ describe("usecase apply is the validated write gateway", () => {
   });
 
   it("surfaces doctor findings inline so the agent need not re-run doctor", () => {
-    const env = apply("- **acme**: 주문이 정확히 기록된다.", "VSPEC-001", "--section", "stakeholders");
+    const env = apply(
+      "- **acme**: 주문이 정확히 기록된다.",
+      "VSPEC-001",
+      "--section",
+      "stakeholders",
+    );
     expect(env.status).toBe("ok");
-    expect(env.warnings.some((w) => /acme does not exist/.test(w.message))).toBe(true);
+    expect(
+      env.warnings.some((w) => /acme does not exist/.test(w.message)),
+    ).toBe(true);
   });
 
   it("writes a file that round-trips through parse + serialize", () => {
-    apply("1. **developer** 변경 사항을 검토한다.\n2. **system** 승인 상태를 기록한다.\n", "VSPEC-001", "--section", "main-success");
+    apply(
+      "1. **developer** 변경 사항을 검토한다.\n2. **system** 승인 상태를 기록한다.\n",
+      "VSPEC-001",
+      "--section",
+      "main-success",
+    );
     const text = readFileSync(ucPath(), "utf8");
     expect(serializeUseCase(parseUseCaseMarkdown(text))).toBe(text);
   });

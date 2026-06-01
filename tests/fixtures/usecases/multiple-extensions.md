@@ -10,6 +10,7 @@ priority: P1
 primary_actor: developer
 scope: vspec
 ---
+
 # Export a use case
 
 ## Stakeholders and Interests

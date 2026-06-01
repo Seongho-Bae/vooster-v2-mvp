@@ -25,7 +25,7 @@ version control. The agent is the only user.**
 
 ## First Principles
 
-1. **Files are the source of truth.** A use case *is* a markdown file in
+1. **Files are the source of truth.** A use case _is_ a markdown file in
    `specs/`. There is no canonical copy elsewhere. The tool reads files, writes
    files, and validates files. Nothing syncs to a server because there is no
    server.
@@ -35,10 +35,10 @@ version control. The agent is the only user.**
    git-backed structural impact diff is a possible fast-follow — see
    [Out of Scope](#out-of-scope).)
 3. **The agent is the user.** There is no web UI and no human-facing GUI in
-   this MVP. Humans drive the tool *through* their coding agent. Every command
+   this MVP. Humans drive the tool _through_ their coding agent. Every command
    speaks `--format=agent` (see `04-agent-envelope.md`).
 4. **The CLI is the only mutation path; the agent authors the content.** LLMs are
-   excellent at writing the use-case prose — but they submit it *through* the CLI
+   excellent at writing the use-case prose — but they submit it _through_ the CLI
    (`vspec usecase apply` / `apply --section` / `set`), never by editing files
    under `specs/` with an Edit/Write tool. The filesystem is the current backend
    and will be replaced by a remote database, where raw file writes are
@@ -71,12 +71,12 @@ the on-disk format.
 Four file-backed entities. No UUIDs, no revision pointers, no `project_id` —
 identity is human-readable and encoded in the filename.
 
-| Entity          | Lives in                          | Identity            |
-| --------------- | --------------------------------- | ------------------- |
-| **UseCase**     | `specs/usecases/<KEY>-<slug>.md`  | `<PREFIX>-<NNN>`    |
-| **Actor**       | `specs/actors/<name>.md`          | `name` (slug)       |
-| **Stakeholder** | `specs/stakeholders/<name>.md`    | `name` (slug)       |
-| **Goal**        | `specs/goals/<G-NNN>-<slug>.md`   | `G-<NNN>`           |
+| Entity          | Lives in                         | Identity         |
+| --------------- | -------------------------------- | ---------------- |
+| **UseCase**     | `specs/usecases/<KEY>-<slug>.md` | `<PREFIX>-<NNN>` |
+| **Actor**       | `specs/actors/<name>.md`         | `name` (slug)    |
+| **Stakeholder** | `specs/stakeholders/<name>.md`   | `name` (slug)    |
+| **Goal**        | `specs/goals/<G-NNN>-<slug>.md`  | `G-<NNN>`        |
 
 **Scenarios and steps are NOT separate files or entities.** They live inside the
 use-case markdown body (the `Main Success Scenario` numbered list and the
@@ -92,17 +92,17 @@ concept. `vspec init --key <PREFIX>` records a single key prefix in
 Prescriptive, but minimal. Add a dependency only when a hand-rolled version
 would be clearly worse.
 
-| Concern        | Choice                          | Notes                                              |
-| -------------- | ------------------------------- | -------------------------------------------------- |
-| Language       | TypeScript 5.x (strict), ESM    | `"type": "module"`, NodeNext resolution.           |
-| Runtime        | Node.js 20+                     |                                                    |
-| Package manager| pnpm                            | **Single package**, no workspace.                  |
-| CLI parsing    | `commander`                     | Tiny surface; no need for oclif's plugin machinery.|
-| Frontmatter    | `gray-matter`                   | Parse + stringify YAML frontmatter.                |
-| Frontmatter schema | `zod`                       | Validate frontmatter shape; derive TS types.       |
-| Body parsing   | hand-rolled, line-based         | We need structured extraction + exact round-trip.  |
-| Test runner    | `vitest`                        |                                                    |
-| Format         | `prettier`, `tsc --noEmit`      | No ESLint boundaries plugin — no layering to guard.|
+| Concern            | Choice                       | Notes                                               |
+| ------------------ | ---------------------------- | --------------------------------------------------- |
+| Language           | TypeScript 5.x (strict), ESM | `"type": "module"`, NodeNext resolution.            |
+| Runtime            | Node.js 20+                  |                                                     |
+| Package manager    | pnpm                         | **Single package**, no workspace.                   |
+| CLI parsing        | `commander`                  | Tiny surface; no need for oclif's plugin machinery. |
+| Frontmatter        | `gray-matter`                | Parse + stringify YAML frontmatter.                 |
+| Frontmatter schema | `zod`                        | Validate frontmatter shape; derive TS types.        |
+| Body parsing       | hand-rolled, line-based      | We need structured extraction + exact round-trip.   |
+| Test runner        | `vitest`                     |                                                     |
+| Format             | `prettier`, `tsc --noEmit`   | No ESLint boundaries plugin — no layering to guard. |
 
 **Explicitly NOT used:** Fastify, Prisma, PostgreSQL, oclif, argon2, any OAuth,
 `marked`, Next.js, React, Docker, testcontainers.
@@ -116,7 +116,7 @@ does:
 - HTTP API, auth (OAuth), API keys, sessions, workspaces, membership, billing.
 - Custom revisions, branches, merges, locks, impact analysis, `sync`/`pull`/
   `push` — **git does this for files.**
-- AI-generated use cases. Authoring here means *structured authoring* by a human
+- AI-generated use cases. Authoring here means _structured authoring_ by a human
   or agent; the tool validates and scaffolds, it does not invent content.
 
 **Possible fast-follows** (not required for dogfooding): a git-backed structural
@@ -128,7 +128,7 @@ file versions; a `vspec serve` local read-only viewer.
 The MVP is done when **we can author vspec's own specs with vspec, offline**:
 
 1. `vspec init --key VSPEC` scaffolds a repo.
-2. Several real use cases for *this project* are authored via the CLI (the agent
+2. Several real use cases for _this project_ are authored via the CLI (the agent
    running `vspec usecase create` then `vspec usecase apply`), never by editing
    the files directly.
 3. `vspec doctor` reports them green.

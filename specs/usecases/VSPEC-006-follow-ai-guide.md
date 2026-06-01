@@ -10,6 +10,7 @@ priority: P2
 scope: vspec
 primary_actor: ai-agent
 ---
+
 # Follow ai guide
 
 > Fresh-agent dogfooding: this use case was authored by following only the command walkthrough printed by vspec ai-guide.

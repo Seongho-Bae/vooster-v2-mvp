@@ -16,21 +16,21 @@ definite ending state), **stakeholders** (multiple parties with interests).
 
 ## Required Fields (Fully Dressed)
 
-| Field                        | Required    | Notes                                       |
-| ---------------------------- | ----------- | ------------------------------------------- |
-| `key`                        | Yes         | e.g. `VSPEC-009`. Assigned by the tool.     |
-| `title`                      | Yes         | **Verb phrase**, active voice.              |
-| `level`                      | Yes         | `SUMMARY` / `USER_GOAL` / `SUBFUNCTION`.    |
-| `scope`                      | Yes         | The system boundary name.                   |
-| `primary_actor`              | Yes         | One actor (by `name`).                       |
-| Stakeholders and Interests   | Yes         | ≥1 interest.                                |
-| Preconditions                | Yes         | List (may be empty, not absent).            |
-| Trigger                      | Yes         | Single sentence.                            |
-| Main Success Scenario        | Yes         | Numbered steps (3–9 typical).               |
-| Extensions                   | Recommended | Numbered like `3a`, `*a`.                    |
-| Success Guarantee            | Yes         | What is true on success.                    |
-| Minimal Guarantee            | Yes         | What is true even on failure.               |
-| `frequency`, `priority`      | Optional    |                                             |
+| Field                      | Required    | Notes                                    |
+| -------------------------- | ----------- | ---------------------------------------- |
+| `key`                      | Yes         | e.g. `VSPEC-009`. Assigned by the tool.  |
+| `title`                    | Yes         | **Verb phrase**, active voice.           |
+| `level`                    | Yes         | `SUMMARY` / `USER_GOAL` / `SUBFUNCTION`. |
+| `scope`                    | Yes         | The system boundary name.                |
+| `primary_actor`            | Yes         | One actor (by `name`).                   |
+| Stakeholders and Interests | Yes         | ≥1 interest.                             |
+| Preconditions              | Yes         | List (may be empty, not absent).         |
+| Trigger                    | Yes         | Single sentence.                         |
+| Main Success Scenario      | Yes         | Numbered steps (3–9 typical).            |
+| Extensions                 | Recommended | Numbered like `3a`, `*a`.                |
+| Success Guarantee          | Yes         | What is true on success.                 |
+| Minimal Guarantee          | Yes         | What is true even on failure.            |
+| `frequency`, `priority`    | Optional    |                                          |
 
 ## Levels (Cockburn's altitude metaphor)
 
@@ -47,16 +47,16 @@ definite ending state), **stakeholders** (multiple parties with interests).
 - `FULLY_DRESSED` — all fields above populated.
 
 A freshly created use case starts at `BRIEF`. `doctor` only enforces the full
-field set for `FULLY_DRESSED`; it *warns* about missing fields at lower
+field set for `FULLY_DRESSED`; it _warns_ about missing fields at lower
 maturities.
 
 ## Actor vs. Stakeholder
 
-- An **Actor** *does* something (appears in steps).
-- A **Stakeholder** *cares* about something (appears in Stakeholders & Interests).
+- An **Actor** _does_ something (appears in steps).
+- A **Stakeholder** _cares_ about something (appears in Stakeholders & Interests).
 
 A person can be both, but enters in different roles. Modeling them separately
-forces explicit thought about *whose interest is at stake* on each step.
+forces explicit thought about _whose interest is at stake_ on each step.
 
 ## Writing Steps
 
@@ -64,10 +64,12 @@ Each step is one short sentence in **active voice, present tense**:
 `<Actor> <verb-phrase> <object>`.
 
 Good:
+
 - "Customer submits the order."
 - "System validates the payment method."
 
 Bad:
+
 - "The order is submitted." (passive)
 - "Customer clicks 'Submit'." (UI detail)
 - "Customer might submit." (uncertain)
@@ -99,7 +101,7 @@ extension should keep every interest at least minimally protected.
 
 ## Goals vs. Use Cases (Backlog vs. Spec)
 
-A **Goal** is a *candidate* — something an actor wants to do, captured during the
+A **Goal** is a _candidate_ — something an actor wants to do, captured during the
 Actor-Goal List phase. Not every goal becomes a use case (some are duplicates,
 out of scope, or folded into a larger goal). An approved goal is **promoted** to
 a use case; the goal records the link (`linked_usecase`) so the backlog → spec
@@ -112,23 +114,23 @@ Goal status: `IDENTIFIED | IN_DESIGN | PROMOTED | REJECTED`.
 `vspec doctor` runs **fully offline** against the files in `specs/`. Errors fail
 (non-zero exit); warnings pass (zero exit) but are reported.
 
-| Rule                                                            | Level |
-| -------------------------------------------------------------- | ----- |
-| At least one stakeholder interest.                              | Error |
-| Main success scenario has ≥1 step.                              | Error |
-| Each step has a bold actor + an action.                         | Error |
-| Each step's actor exists in `specs/actors/`.                    | Error |
-| Each stakeholder reference exists in `specs/stakeholders/`.     | Error |
-| `primary_actor` exists in `specs/actors/`.                      | Error |
-| Extensions reference an existing step number or `*`.            | Error |
-| `Success Guarantee` and `Minimal Guarantee` are present.        | Error |
-| `level` is one of the three enumerated values.                  | Error |
-| Frontmatter passes its zod schema (required fields, enums).     | Error |
-| Required field missing while `format: FULLY_DRESSED`.           | Error |
-| Title is a verb phrase (heuristic).                             | Warn  |
-| Step over 25 words.                                             | Warn  |
-| More than 9 main success steps.                                 | Warn  |
-| Required field missing while `format: BRIEF` / `CASUAL`.        | Warn  |
+| Rule                                                             | Level |
+| ---------------------------------------------------------------- | ----- |
+| At least one stakeholder interest.                               | Error |
+| Main success scenario has ≥1 step.                               | Error |
+| Each step has a bold actor + an action.                          | Error |
+| Each step's actor exists in `specs/actors/`.                     | Error |
+| Each stakeholder reference exists in `specs/stakeholders/`.      | Error |
+| `primary_actor` exists in `specs/actors/`.                       | Error |
+| Extensions reference an existing step number or `*`.             | Error |
+| `Success Guarantee` and `Minimal Guarantee` are present.         | Error |
+| `level` is one of the three enumerated values.                   | Error |
+| Frontmatter passes its zod schema (required fields, enums).      | Error |
+| Required field missing while `format: FULLY_DRESSED`.            | Error |
+| Title is a verb phrase (heuristic).                              | Warn  |
+| Step over 25 words.                                              | Warn  |
+| More than 9 main success steps.                                  | Warn  |
+| Required field missing while `format: BRIEF` / `CASUAL`.         | Warn  |
 | Scenario step uses vague glossary Avoid Terms.                   | Warn  |
 | Scenario step is too short to become an E2E assertion.           | Warn  |
 | Guarantee is not concrete or observable.                         | Warn  |

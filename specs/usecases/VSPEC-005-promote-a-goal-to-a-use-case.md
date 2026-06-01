@@ -10,6 +10,7 @@ priority: P1
 scope: vspec
 primary_actor: ai-agent
 ---
+
 # Promote a goal to a use case
 
 ## Stakeholders and Interests

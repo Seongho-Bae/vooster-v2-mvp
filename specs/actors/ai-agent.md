@@ -6,4 +6,5 @@ display_name: AI Agent
 actor_type: PRIMARY
 is_human: true
 ---
+
 AI Agent actor.

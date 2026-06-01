@@ -12,11 +12,11 @@ the project.
 
 ## Output Formats
 
-| Flag                | Output                                                       |
-| ------------------- | ----------------------------------------------------------- |
-| `--format=agent`    | **Default.** The full agent envelope (`04-agent-envelope.md`).|
-| `--format=json`     | The raw `data` payload as JSON.                              |
-| `--format=human`    | Short human-readable lines.                                  |
+| Flag             | Output                                                         |
+| ---------------- | -------------------------------------------------------------- |
+| `--format=agent` | **Default.** The full agent envelope (`04-agent-envelope.md`). |
+| `--format=json`  | The raw `data` payload as JSON.                                |
+| `--format=human` | Short human-readable lines.                                    |
 
 Errors in `--format=agent` are returned as an envelope with `status: "error"`
 and exit code non-zero. In `human`/`json` they print a message to stderr and

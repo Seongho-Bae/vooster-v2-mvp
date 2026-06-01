@@ -27,16 +27,16 @@ go through the extractor (step 2).
 
 ## 1. Internalize the direction (do this first, every time)
 
-Read these so your recommendations align with what vspec is *for*, then write
+Read these so your recommendations align with what vspec is _for_, then write
 yourself a 5-line "principles I will judge against" list:
 
 - `docs/00-overview.md` — first principles. Key ones to hold:
   1. **Files are the source of truth** → a command must never leave a spec file
      in a state that later commands can't load. Corruption is a P0 bug.
   2. **The agent is the user** → every output (esp. errors) must be
-     *self-teaching*: stable `error.code`, a human message, and
+     _self-teaching_: stable `error.code`, a human message, and
      `suggested_next_actions`. Agent-first means `--format=agent` is the default.
-  3. **The CLI is the only mutation path** → the agent authors the *content*, but
+  3. **The CLI is the only mutation path** → the agent authors the _content_, but
      every add/edit/delete goes through a `vspec` command (`usecase apply` /
      `apply --section` / `set`). Files are today's storage; vspec is moving to a
      remote DB where direct file writes won't exist. So a direct `Edit`/`Write`
@@ -71,7 +71,7 @@ prompts, tool-usage counts, every vspec command in order, subcommand frequency,
 
 Read the whole digest. The **assistant narration** section is usually the richest
 signal — the agent often literally writes where it got stuck ("CLI extension
-포맷이 협조하지 않아 직접 작성"). Treat narration as a *claim of intent*; confirm
+포맷이 협조하지 않아 직접 작성"). Treat narration as a _claim of intent_; confirm
 it against the **error samples** (trust but verify).
 
 If you need the full text around a specific failure, drill in with targeted jq
@@ -85,18 +85,18 @@ jq -r 'select(.type=="user")|.message.content|if type=="array" then (.[]|select(
 
 Scan the digest for these. Each maps to a likely vspec defect:
 
-| Signal in digest | Likely defect |
-| --- | --- |
-| Same subcommand called many times, mostly failing (high count in "subcommand frequency" + matching errors) | The command's contract is unclear or its errors are unhelpful. |
-| Repeated `--help` probing for the same command | `ai-guide`/help doesn't document it (esp. enums, formats). |
-| `"message": "<CODE>"` (message == code) | Error carries no actionable detail → agent must guess. |
-| Raw `[{"code":"invalid_value",...}]` arrays | A zod/parse error leaked instead of the documented envelope. |
-| A `set`/mutator "succeeds" then later commands fail on load | A command wrote an unvalidated value and **corrupted a file** (P0). |
-| Any direct `Edit`/`Write`/`sed` touching files under `specs/` | A CLI capability gap: the agent fell back to hand-editing because `apply`/`apply --section`/`set` couldn't express that section or operation. Identify *which* section/op was missing and treat closing it as a defect (🔴 if it bypassed validation / could corrupt, 🟡 otherwise). Never resolve by endorsing direct edits. |
-| Enum/format guessing (BOGUS, uppercase/lowercase, free-text where enum expected) | Missing value hints in help + errors. |
-| `--format` usage shows json/human but never `agent`; low `suggested_next_actions` count | The self-teaching envelope isn't reaching the agent (default? guidance?). |
-| `doctor` false positives, esp. on Korean text or short tokens | Lint heuristics assume English; ko is the default language. |
-| Binary/setup confusion (`which`, "not found", alias) | Distribution/naming/`ai-guide` mismatch (note env vs. repo cause). |
+| Signal in digest                                                                                           | Likely defect                                                                                                                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Same subcommand called many times, mostly failing (high count in "subcommand frequency" + matching errors) | The command's contract is unclear or its errors are unhelpful.                                                                                                                                                                                                                                                                |
+| Repeated `--help` probing for the same command                                                             | `ai-guide`/help doesn't document it (esp. enums, formats).                                                                                                                                                                                                                                                                    |
+| `"message": "<CODE>"` (message == code)                                                                    | Error carries no actionable detail → agent must guess.                                                                                                                                                                                                                                                                        |
+| Raw `[{"code":"invalid_value",...}]` arrays                                                                | A zod/parse error leaked instead of the documented envelope.                                                                                                                                                                                                                                                                  |
+| A `set`/mutator "succeeds" then later commands fail on load                                                | A command wrote an unvalidated value and **corrupted a file** (P0).                                                                                                                                                                                                                                                           |
+| Any direct `Edit`/`Write`/`sed` touching files under `specs/`                                              | A CLI capability gap: the agent fell back to hand-editing because `apply`/`apply --section`/`set` couldn't express that section or operation. Identify _which_ section/op was missing and treat closing it as a defect (🔴 if it bypassed validation / could corrupt, 🟡 otherwise). Never resolve by endorsing direct edits. |
+| Enum/format guessing (BOGUS, uppercase/lowercase, free-text where enum expected)                           | Missing value hints in help + errors.                                                                                                                                                                                                                                                                                         |
+| `--format` usage shows json/human but never `agent`; low `suggested_next_actions` count                    | The self-teaching envelope isn't reaching the agent (default? guidance?).                                                                                                                                                                                                                                                     |
+| `doctor` false positives, esp. on Korean text or short tokens                                              | Lint heuristics assume English; ko is the default language.                                                                                                                                                                                                                                                                   |
+| Binary/setup confusion (`which`, "not found", alias)                                                       | Distribution/naming/`ai-guide` mismatch (note env vs. repo cause).                                                                                                                                                                                                                                                            |
 
 ## 4. Classify by QUANTS (docs/05)
 

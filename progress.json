@@ -10,10 +10,26 @@
       "status": "done",
       "gate": "pnpm test green (envelope builders); `vspec --help` exits 0",
       "tasks": [
-        { "id": "P0-T1", "title": "Init package (package.json, tsconfig, deps: commander/gray-matter/zod + dev vitest/prettier/tsx)", "status": "done" },
-        { "id": "P0-T2", "title": "Wire commander CLI entry (src/cli.ts) with --help/--version", "status": "done" },
-        { "id": "P0-T3", "title": "Domain types (src/domain/types.ts) for 4 entities + ParsedUseCase", "status": "done" },
-        { "id": "P0-T4", "title": "Agent envelope builders (src/envelope.ts) + unit tests", "status": "done" }
+        {
+          "id": "P0-T1",
+          "title": "Init package (package.json, tsconfig, deps: commander/gray-matter/zod + dev vitest/prettier/tsx)",
+          "status": "done"
+        },
+        {
+          "id": "P0-T2",
+          "title": "Wire commander CLI entry (src/cli.ts) with --help/--version",
+          "status": "done"
+        },
+        {
+          "id": "P0-T3",
+          "title": "Domain types (src/domain/types.ts) for 4 entities + ParsedUseCase",
+          "status": "done"
+        },
+        {
+          "id": "P0-T4",
+          "title": "Agent envelope builders (src/envelope.ts) + unit tests",
+          "status": "done"
+        }
       ]
     },
     {
@@ -22,11 +38,31 @@
       "status": "done",
       "gate": "for every fixture F: serialize(parse(F))===normalize(F) AND normalize(normalize(F))===normalize(F)",
       "tasks": [
-        { "id": "P1-T1", "title": "Frontmatter parse/stringify (gray-matter) + zod schemas, fixed key order", "status": "done" },
-        { "id": "P1-T2", "title": "Body parser: blurb/interests/preconditions/trigger/steps/extensions/guarantees/notes", "status": "done" },
-        { "id": "P1-T3", "title": "Serializer: canonical order, renumbered steps, single trailing newline", "status": "done" },
-        { "id": "P1-T4", "title": "normalize() + idempotence", "status": "done" },
-        { "id": "P1-T5", "title": "Fixture corpus (tests/fixtures/usecases/) covering edge cases", "status": "done" }
+        {
+          "id": "P1-T1",
+          "title": "Frontmatter parse/stringify (gray-matter) + zod schemas, fixed key order",
+          "status": "done"
+        },
+        {
+          "id": "P1-T2",
+          "title": "Body parser: blurb/interests/preconditions/trigger/steps/extensions/guarantees/notes",
+          "status": "done"
+        },
+        {
+          "id": "P1-T3",
+          "title": "Serializer: canonical order, renumbered steps, single trailing newline",
+          "status": "done"
+        },
+        {
+          "id": "P1-T4",
+          "title": "normalize() + idempotence",
+          "status": "done"
+        },
+        {
+          "id": "P1-T5",
+          "title": "Fixture corpus (tests/fixtures/usecases/) covering edge cases",
+          "status": "done"
+        }
       ]
     },
     {
@@ -35,10 +71,26 @@
       "status": "done",
       "gate": "one red fixture per error rule + a clean fixture passes; `vspec doctor` on clean dir exits 0",
       "tasks": [
-        { "id": "P2-T1", "title": "Validation engine: one check per Cockburn rule, findings {rule,level,message,location}", "status": "done" },
-        { "id": "P2-T2", "title": "Cross-reference checks (primary_actor, step actors, stakeholders resolve to files)", "status": "done" },
-        { "id": "P2-T3", "title": "format-aware required-field enforcement (error@FULLY_DRESSED, warn otherwise)", "status": "done" },
-        { "id": "P2-T4", "title": "vspec doctor [KEY|path] command + agent envelope (VALIDATION_FAILED)", "status": "done" }
+        {
+          "id": "P2-T1",
+          "title": "Validation engine: one check per Cockburn rule, findings {rule,level,message,location}",
+          "status": "done"
+        },
+        {
+          "id": "P2-T2",
+          "title": "Cross-reference checks (primary_actor, step actors, stakeholders resolve to files)",
+          "status": "done"
+        },
+        {
+          "id": "P2-T3",
+          "title": "format-aware required-field enforcement (error@FULLY_DRESSED, warn otherwise)",
+          "status": "done"
+        },
+        {
+          "id": "P2-T4",
+          "title": "vspec doctor [KEY|path] command + agent envelope (VALIDATION_FAILED)",
+          "status": "done"
+        }
       ]
     },
     {
@@ -47,10 +99,26 @@
       "status": "done",
       "gate": "e2e: init -> usecase create -> file round-trips and doctor reports no errors",
       "tasks": [
-        { "id": "P3-T1", "title": "vspec init [--key]: write .vspec/config.json + specs/ subdirs, idempotent", "status": "done" },
-        { "id": "P3-T2", "title": "vspec usecase create: allocate key, slug, BRIEF skeleton, honor --from", "status": "done" },
-        { "id": "P3-T3", "title": "vspec usecase list / show from files", "status": "done" },
-        { "id": "P3-T4", "title": "Key allocation helper (src/keys.ts) shared by usecase & goal", "status": "done" }
+        {
+          "id": "P3-T1",
+          "title": "vspec init [--key]: write .vspec/config.json + specs/ subdirs, idempotent",
+          "status": "done"
+        },
+        {
+          "id": "P3-T2",
+          "title": "vspec usecase create: allocate key, slug, BRIEF skeleton, honor --from",
+          "status": "done"
+        },
+        {
+          "id": "P3-T3",
+          "title": "vspec usecase list / show from files",
+          "status": "done"
+        },
+        {
+          "id": "P3-T4",
+          "title": "Key allocation helper (src/keys.ts) shared by usecase & goal",
+          "status": "done"
+        }
       ]
     },
     {
@@ -59,10 +127,26 @@
       "status": "done",
       "gate": "e2e: build a FULLY_DRESSED use case entirely via CLI; doctor exits 0 with no warnings",
       "tasks": [
-        { "id": "P4-T1", "title": "actor & stakeholder create/list/show (file CRUD, ALREADY_EXISTS guard)", "status": "done" },
-        { "id": "P4-T2", "title": "goal create/list/show/promote/reject (promote links + creates use case)", "status": "done" },
-        { "id": "P4-T3", "title": "usecase set (frontmatter field, re-serialize through normalize)", "status": "done" },
-        { "id": "P4-T4", "title": "usecase apply [--section] body-authoring gateway (parse + validate + normalize on write)", "status": "done" }
+        {
+          "id": "P4-T1",
+          "title": "actor & stakeholder create/list/show (file CRUD, ALREADY_EXISTS guard)",
+          "status": "done"
+        },
+        {
+          "id": "P4-T2",
+          "title": "goal create/list/show/promote/reject (promote links + creates use case)",
+          "status": "done"
+        },
+        {
+          "id": "P4-T3",
+          "title": "usecase set (frontmatter field, re-serialize through normalize)",
+          "status": "done"
+        },
+        {
+          "id": "P4-T4",
+          "title": "usecase apply [--section] body-authoring gateway (parse + validate + normalize on write)",
+          "status": "done"
+        }
       ]
     },
     {
@@ -71,9 +155,21 @@
       "status": "done",
       "gate": "each command's --format=agent emits a valid envelope with non-empty suggested_next_actions; KEY_NOT_FOUND path returns right code + recovery",
       "tasks": [
-        { "id": "P5-T1", "title": "Thread --format through every command; map errors to stable codes", "status": "done" },
-        { "id": "P5-T2", "title": "Populate suggested_next_actions (success + error) per cli-spec examples", "status": "done" },
-        { "id": "P5-T3", "title": "vspec ai-guide: end-to-end authoring walkthrough", "status": "done" }
+        {
+          "id": "P5-T1",
+          "title": "Thread --format through every command; map errors to stable codes",
+          "status": "done"
+        },
+        {
+          "id": "P5-T2",
+          "title": "Populate suggested_next_actions (success + error) per cli-spec examples",
+          "status": "done"
+        },
+        {
+          "id": "P5-T3",
+          "title": "vspec ai-guide: end-to-end authoring walkthrough",
+          "status": "done"
+        }
       ]
     },
     {
@@ -82,8 +178,16 @@
       "status": "done",
       "gate": "golden-file test: fixture use case renders byte-for-byte to expected .feature",
       "tasks": [
-        { "id": "P6-T1", "title": "Gherkin renderer (Feature/Background/Main/Extensions/outcome)", "status": "done" },
-        { "id": "P6-T2", "title": "vspec export gherkin <KEY> [--output]; agent envelope with affected_files", "status": "done" }
+        {
+          "id": "P6-T1",
+          "title": "Gherkin renderer (Feature/Background/Main/Extensions/outcome)",
+          "status": "done"
+        },
+        {
+          "id": "P6-T2",
+          "title": "vspec export gherkin <KEY> [--output]; agent envelope with affected_files",
+          "status": "done"
+        }
       ]
     },
     {
@@ -92,11 +196,31 @@
       "status": "done",
       "gate": "vspec doctor exits 0 over specs/; every file round-trips; a .feature per use case; fresh-agent task succeeds",
       "tasks": [
-        { "id": "P7-T1", "title": "vspec init --key VSPEC at repo root", "status": "done" },
-        { "id": "P7-T2", "title": "Author >=5 real use cases for this project (+ referenced actors/stakeholders)", "status": "done" },
-        { "id": "P7-T3", "title": "vspec doctor over whole tree exits 0", "status": "done" },
-        { "id": "P7-T4", "title": "vspec export gherkin <KEY> for each", "status": "done" },
-        { "id": "P7-T5", "title": "Fresh-agent check: author one use case from only `vspec ai-guide`", "status": "done" }
+        {
+          "id": "P7-T1",
+          "title": "vspec init --key VSPEC at repo root",
+          "status": "done"
+        },
+        {
+          "id": "P7-T2",
+          "title": "Author >=5 real use cases for this project (+ referenced actors/stakeholders)",
+          "status": "done"
+        },
+        {
+          "id": "P7-T3",
+          "title": "vspec doctor over whole tree exits 0",
+          "status": "done"
+        },
+        {
+          "id": "P7-T4",
+          "title": "vspec export gherkin <KEY> for each",
+          "status": "done"
+        },
+        {
+          "id": "P7-T5",
+          "title": "Fresh-agent check: author one use case from only `vspec ai-guide`",
+          "status": "done"
+        }
       ]
     }
   ]

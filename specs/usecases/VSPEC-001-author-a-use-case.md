@@ -10,6 +10,7 @@ priority: P0
 scope: vspec
 primary_actor: ai-agent
 ---
+
 # Author a use case
 
 > The AI agent authors a Cockburn use case as a markdown file while the CLI supplies structure, validation, and stable keys.

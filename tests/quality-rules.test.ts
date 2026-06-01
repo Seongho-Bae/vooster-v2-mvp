@@ -14,7 +14,9 @@ describe("doctor quality rules", () => {
     const glossary = readFileSync(join(root, "specs/glossary.md"), "utf8");
     expect(glossary).toContain("## Preferred Terms");
     expect(glossary).toContain("## Avoid Terms");
-    expect(readFileSync(join(root, ".vspec/config.json"), "utf8")).toContain('"spec_language": "ko"');
+    expect(readFileSync(join(root, ".vspec/config.json"), "utf8")).toContain(
+      '"spec_language": "ko"',
+    );
     rmSync(root, { recursive: true, force: true });
   });
 
