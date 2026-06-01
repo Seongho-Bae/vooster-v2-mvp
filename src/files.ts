@@ -2,8 +2,8 @@ import {
   existsSync,
   readdirSync,
   readFileSync,
-  realpathSync,
   statSync,
+  realpathSync,
 } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 
@@ -44,38 +44,33 @@ export function projectKey(start = process.cwd()): string | null {
 export function walkFiles(
   root: string,
   predicate: (path: string) => boolean,
+  visited = new Set<string>(),
 ): string[] {
   if (!existsSync(root)) return [];
-  const seenDirs = new Set<string>();
-
-  function visit(dir: string): string[] {
-    let realDir: string;
-    try {
-      realDir = realpathSync(dir);
-    } catch {
-      return [];
-    }
-    if (seenDirs.has(realDir)) return [];
-    seenDirs.add(realDir);
-
-    const files: string[] = [];
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const path = join(dir, entry.name);
-      let isDir = entry.isDirectory();
-      if (entry.isSymbolicLink()) {
-        try {
-          isDir = statSync(path).isDirectory();
-        } catch {
-          continue;
-        }
-      }
-      if (isDir) files.push(...visit(path));
-      else if (predicate(path)) files.push(path);
-    }
-    return files;
+  try {
+    const realRoot = realpathSync(root);
+    if (visited.has(realRoot)) return [];
+    visited.add(realRoot);
+  } catch {
+    return [];
   }
 
-  return visit(root).sort();
+  const files: string[] = [];
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const path = join(root, entry.name);
+    let isDir = entry.isDirectory();
+    if (entry.isSymbolicLink()) {
+      try {
+        isDir = statSync(path).isDirectory();
+      } catch {
+        // Ignore broken symlinks
+        continue;
+      }
+    }
+    if (isDir) files.push(...walkFiles(path, predicate, visited));
+    else if (predicate(path)) files.push(path);
+  }
+  return files.sort();
 }
 
 export function relativePath(path: string, from = process.cwd()): string {
