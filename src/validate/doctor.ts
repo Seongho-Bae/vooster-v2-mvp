@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { basename, join, relative, resolve, isAbsolute } from "node:path";
 import { statSync } from "node:fs";
 import { ZodError } from "zod";
 import { parseUseCaseMarkdown } from "../format/parse.js";
@@ -90,6 +90,8 @@ function isPromotable(useCase: ParsedUseCase): boolean {
 function resolveTargets(root: string, target?: string): string[] {
   if (!target) return walkFiles(join(root, "specs/usecases"), (path) => path.endsWith(".md"));
   const direct = resolve(root, target);
+  const rel = relative(root, direct);
+  if (rel.startsWith("..") || isAbsolute(rel)) return [];
   if (existsSync(direct)) {
     return statSync(direct).isDirectory()
       ? walkFiles(direct, (path) => path.endsWith(".md"))
