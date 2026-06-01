@@ -10,6 +10,7 @@ priority: P1
 scope: vspec
 primary_actor: developer
 ---
+
 # Export Gherkin
 
 ## Stakeholders and Interests

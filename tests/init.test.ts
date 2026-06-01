@@ -9,10 +9,13 @@ const tsx = join(repoRoot, "node_modules/.bin/tsx");
 const cli = join(repoRoot, "src/cli.ts");
 
 let root: string;
-const config = () => JSON.parse(readFileSync(join(root, ".vspec/config.json"), "utf8"));
+const config = () =>
+  JSON.parse(readFileSync(join(root, ".vspec/config.json"), "utf8"));
 
 function run(...args: string[]) {
-  return JSON.parse(execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" }));
+  return JSON.parse(
+    execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" }),
+  );
 }
 function expectError(...args: string[]) {
   try {

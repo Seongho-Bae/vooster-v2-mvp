@@ -9,19 +9,40 @@ const tsx = join(repoRoot, "node_modules/.bin/tsx");
 const cli = join(repoRoot, "src/cli.ts");
 
 let root: string;
-function run(...args: string[]): { status: string; suggested_next_actions: { command: string }[] } {
-  return JSON.parse(execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" }));
+function run(...args: string[]): {
+  status: string;
+  suggested_next_actions: { command: string }[];
+} {
+  return JSON.parse(
+    execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" }),
+  );
 }
 const promotes = (env: { suggested_next_actions: { command: string }[] }) =>
-  env.suggested_next_actions.some((a) => /--field format --value FULLY_DRESSED/.test(a.command));
+  env.suggested_next_actions.some((a) =>
+    /--field format --value FULLY_DRESSED/.test(a.command),
+  );
 
 describe("FULLY_DRESSED promotion suggestion", () => {
   beforeEach(() => {
     root = join(tmpdir(), `vspec-promote-${crypto.randomUUID()}`);
     mkdirSync(root, { recursive: true });
     run("init", "--key", "VSPEC");
-    run("actor", "create", "--name", "developer", "--display-name", "Developer");
-    run("usecase", "create", "--title", "리뷰를 승인한다", "--primary-actor", "developer");
+    run(
+      "actor",
+      "create",
+      "--name",
+      "developer",
+      "--display-name",
+      "Developer",
+    );
+    run(
+      "usecase",
+      "create",
+      "--title",
+      "리뷰를 승인한다",
+      "--primary-actor",
+      "developer",
+    );
   });
   afterEach(() => rmSync(root, { recursive: true, force: true }));
 
@@ -32,7 +53,15 @@ describe("FULLY_DRESSED promotion suggestion", () => {
   });
 
   it("stops suggesting once the use case is FULLY_DRESSED", () => {
-    run("usecase", "set", "VSPEC-001", "--field", "format", "--value", "FULLY_DRESSED");
+    run(
+      "usecase",
+      "set",
+      "VSPEC-001",
+      "--field",
+      "format",
+      "--value",
+      "FULLY_DRESSED",
+    );
     expect(promotes(run("doctor", "VSPEC-001"))).toBe(false);
   });
 });

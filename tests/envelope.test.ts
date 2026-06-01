@@ -18,7 +18,10 @@ describe("agent envelope builders", () => {
   it("builds error envelopes with stable error payloads", () => {
     expect(
       buildErrorEnvelope({
-        error: { code: "KEY_NOT_FOUND", message: "No use case with key VSPEC-404." },
+        error: {
+          code: "KEY_NOT_FOUND",
+          message: "No use case with key VSPEC-404.",
+        },
         context: { project_key: "VSPEC" },
         suggestedNextActions: [{ command: "vspec usecase list" }],
       }),
@@ -26,7 +29,10 @@ describe("agent envelope builders", () => {
       format_version: 1,
       status: "error",
       data: null,
-      error: { code: "KEY_NOT_FOUND", message: "No use case with key VSPEC-404." },
+      error: {
+        code: "KEY_NOT_FOUND",
+        message: "No use case with key VSPEC-404.",
+      },
       context: { project_key: "VSPEC" },
       affected_files: [],
       dry_run: false,

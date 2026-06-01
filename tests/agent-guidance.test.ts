@@ -15,11 +15,24 @@ function setup(): string {
   return root;
 }
 
-function run(root: string, ...args: string[]): { status: string; data: unknown; warnings: { message: string }[]; suggested_next_actions: { command: string }[] } {
-  return JSON.parse(execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" }));
+function run(
+  root: string,
+  ...args: string[]
+): {
+  status: string;
+  data: unknown;
+  warnings: { message: string }[];
+  suggested_next_actions: { command: string }[];
+} {
+  return JSON.parse(
+    execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" }),
+  );
 }
 
-function runExpectingError(root: string, ...args: string[]): { status: string; suggested_next_actions: { command: string }[] } {
+function runExpectingError(
+  root: string,
+  ...args: string[]
+): { status: string; suggested_next_actions: { command: string }[] } {
   try {
     execFileSync(tsx, [cli, ...args], { cwd: root, encoding: "utf8" });
     throw new Error("expected command to fail");
@@ -31,19 +44,45 @@ function runExpectingError(root: string, ...args: string[]): { status: string; s
 describe("agent guidance signals", () => {
   it("warns at create time when the title is not a verb phrase", () => {
     const root = setup();
-    const noun = run(root, "usecase", "create", "--title", "사용자 계정 등록", "--primary-actor", "user");
+    const noun = run(
+      root,
+      "usecase",
+      "create",
+      "--title",
+      "사용자 계정 등록",
+      "--primary-actor",
+      "user",
+    );
     expect(noun.warnings.some((w) => /verb phrase/.test(w.message))).toBe(true);
-    const verb = run(root, "usecase", "create", "--title", "사용자 계정을 등록한다", "--primary-actor", "user");
+    const verb = run(
+      root,
+      "usecase",
+      "create",
+      "--title",
+      "사용자 계정을 등록한다",
+      "--primary-actor",
+      "user",
+    );
     expect(verb.warnings).toEqual([]);
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
 
   it("doctor reports a summary and surfaces warnings to review", () => {
     const root = setup();
-    const created = run(root, "usecase", "create", "--title", "사용자 계정 등록", "--primary-actor", "user").data as { key: string };
+    const created = run(
+      root,
+      "usecase",
+      "create",
+      "--title",
+      "사용자 계정 등록",
+      "--primary-actor",
+      "user",
+    ).data as { key: string };
     const report = run(root, "doctor", created.key);
     expect(report.status).toBe("ok");
-    const summary = (report.data as { summary: { errors: number; warnings: number } }).summary;
+    const summary = (
+      report.data as { summary: { errors: number; warnings: number } }
+    ).summary;
     expect(summary.errors).toBe(0);
     expect(summary.warnings).toBeGreaterThan(0);
     expect(report.warnings.length).toBeGreaterThan(0);
@@ -52,8 +91,20 @@ describe("agent guidance signals", () => {
 
   it("surfaces the apply nudge in suggested_next_actions after create", () => {
     const root = setup();
-    const created = run(root, "usecase", "create", "--title", "사용자 계정을 등록한다", "--primary-actor", "user");
-    expect(created.suggested_next_actions.some((a) => /usecase apply VSPEC-001 --section main-success/.test(a.command))).toBe(true);
+    const created = run(
+      root,
+      "usecase",
+      "create",
+      "--title",
+      "사용자 계정을 등록한다",
+      "--primary-actor",
+      "user",
+    );
+    expect(
+      created.suggested_next_actions.some((a) =>
+        /usecase apply VSPEC-001 --section main-success/.test(a.command),
+      ),
+    ).toBe(true);
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
 
@@ -61,7 +112,9 @@ describe("agent guidance signals", () => {
     const root = setup();
     const env = runExpectingError(root, "usecase", "show", "VSPEC-404");
     expect(env.status).toBe("error");
-    expect(env.suggested_next_actions.some((a) => /usecase list/.test(a.command))).toBe(true);
+    expect(
+      env.suggested_next_actions.some((a) => /usecase list/.test(a.command)),
+    ).toBe(true);
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
 });

@@ -10,6 +10,7 @@ priority: P3
 scope: vspec
 primary_actor: developer
 ---
+
 # Renumber scenario steps
 
 ## Stakeholders and Interests
@@ -25,7 +26,7 @@ Developer normalizes a file.
 ## Main Success Scenario
 
 2. **developer** writes steps out of order.
-5. **system** renumbers the steps.
+3. **system** renumbers the steps.
 
 ## Extensions
 
