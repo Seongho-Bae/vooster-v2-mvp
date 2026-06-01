@@ -52,7 +52,7 @@ export function walkFiles(
       }
     }
     if (isDir) files.push(...walkFiles(path, predicate));
-    else if (!isDir && predicate(path)) files.push(path);
+    else if (predicate(path)) files.push(path);
   }
   return files.sort();
 }
