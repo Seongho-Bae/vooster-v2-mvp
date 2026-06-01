@@ -1,5 +1,5 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, isAbsolute, relative, resolve } from "node:path";
 import { findUseCaseFile, readConfig, relativePath } from "../files.js";
 import { parseUseCaseMarkdown } from "../format/parse.js";
 import type { ParsedUseCase } from "../domain/types.js";
@@ -21,8 +21,12 @@ export function renderGherkin(useCase: ParsedUseCase): string {
   for (const extension of useCase.extensions) {
     lines.push("");
     lines.push(`  Scenario: ${extension.point} ${extension.condition}`);
-    if (extension.point.startsWith("*")) lines.push("    Given main success reaches any step");
-    else lines.push(`    Given main success reaches step ${extension.point.match(/^(\d+)/)?.[1] ?? extension.point}`);
+    if (extension.point.startsWith("*"))
+      lines.push("    Given main success reaches any step");
+    else
+      lines.push(
+        `    Given main success reaches step ${extension.point.match(/^(\d+)/)?.[1] ?? extension.point}`,
+      );
     for (const step of extension.steps) {
       lines.push(`    When ${step.actor} ${trimSentence(step.action)}`);
     }
@@ -32,14 +36,26 @@ export function renderGherkin(useCase: ParsedUseCase): string {
   return `${lines.join("\n")}\n`;
 }
 
-export function exportGherkin(args: { key: string; output?: string; cwd?: string }) {
+export function exportGherkin(args: {
+  key: string;
+  output?: string;
+  cwd?: string;
+}) {
   const config = readConfig(args.cwd ?? process.cwd());
   if (!config) throw new Error("NOT_INITIALIZED");
   const source = findUseCaseFile(config.root, args.key);
   if (!source) throw new Error("KEY_NOT_FOUND");
-  const text = renderGherkin(parseUseCaseMarkdown(readFileSync(source, "utf8")));
+  const text = renderGherkin(
+    parseUseCaseMarkdown(readFileSync(source, "utf8")),
+  );
   const output = args.output ?? join("tests", `${args.key}.feature`);
-  const outputPath = join(config.root, output);
+  const outputPath = resolve(config.root, output);
+
+  const rel = relative(config.root, outputPath);
+  if (rel.startsWith("..") || isAbsolute(rel)) {
+    throw new Error("PATH_TRAVERSAL_DETECTED");
+  }
+
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, text);
   return { key: args.key, text, path: relativePath(outputPath, config.root) };
