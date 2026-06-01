@@ -1,10 +1,4 @@
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  realpathSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
 import { findUseCaseFile, readConfig, relativePath } from "../files.js";
 import { parseUseCaseMarkdown } from "../format/parse.js";
@@ -60,18 +54,6 @@ export function exportGherkin(args: {
   if (!outputPath.startsWith(rootPath + sep) && outputPath !== rootPath) {
     throw new Error("INVALID_PATH");
   }
-
-  let existingParent = dirname(outputPath);
-  while (!existsSync(existingParent)) existingParent = dirname(existingParent);
-  const realRootPath = realpathSync(rootPath);
-  const realParentPath = realpathSync(existingParent);
-  if (
-    realParentPath !== realRootPath &&
-    !realParentPath.startsWith(realRootPath + sep)
-  ) {
-    throw new Error("INVALID_PATH");
-  }
-
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, text);
   return { key: args.key, text, path: relativePath(outputPath, config.root) };
