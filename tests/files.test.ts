@@ -1,4 +1,5 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { beforeEach, afterEach, describe, expect, it } from "vitest";
@@ -8,7 +9,7 @@ describe("walkFiles", () => {
   let root: string;
 
   beforeEach(() => {
-    root = join(tmpdir(), `vspec-files-${crypto.randomUUID()}`);
+    root = join(tmpdir(), `vspec-files-${randomUUID()}`);
     mkdirSync(root, { recursive: true });
   });
 
