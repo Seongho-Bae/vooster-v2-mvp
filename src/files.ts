@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 
 export type VspecConfig = {
@@ -42,7 +42,10 @@ export function walkFiles(
   const files: string[] = [];
   for (const entry of readdirSync(root, { withFileTypes: true })) {
     const path = join(root, entry.name);
-    if (entry.isDirectory()) files.push(...walkFiles(path, predicate));
+    const isDir =
+      entry.isDirectory() ||
+      (entry.isSymbolicLink() && statSync(path, { throwIfNoEntry: false })?.isDirectory());
+    if (isDir) files.push(...walkFiles(path, predicate));
     else if (predicate(path)) files.push(path);
   }
   return files.sort();
