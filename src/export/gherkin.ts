@@ -43,17 +43,17 @@ export function exportGherkin(args: {
 }) {
   const config = readConfig(args.cwd ?? process.cwd());
   if (!config) throw new Error("NOT_INITIALIZED");
+  const source = findUseCaseFile(config.root, args.key);
+  if (!source) throw new Error("KEY_NOT_FOUND");
+  const text = renderGherkin(
+    parseUseCaseMarkdown(readFileSync(source, "utf8")),
+  );
   const output = args.output ?? join("tests", `${args.key}.feature`);
   const outputPath = resolve(config.root, output);
   const rootPath = resolve(config.root);
   if (!outputPath.startsWith(rootPath + sep) && outputPath !== rootPath) {
     throw new Error("INVALID_PATH");
   }
-  const source = findUseCaseFile(config.root, args.key);
-  if (!source) throw new Error("KEY_NOT_FOUND");
-  const text = renderGherkin(
-    parseUseCaseMarkdown(readFileSync(source, "utf8")),
-  );
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, text);
   return { key: args.key, text, path: relativePath(outputPath, config.root) };
