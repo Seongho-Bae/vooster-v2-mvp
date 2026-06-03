@@ -1,13 +1,20 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { renderGherkin } from "../src/export/gherkin.js";
+import { renderGherkin, exportGherkin } from "../src/export/gherkin.js";
 import { parseUseCaseMarkdown } from "../src/format/parse.js";
+import { VspecError } from "../src/errors.js";
 
 describe("gherkin export", () => {
   it("renders the golden feature byte-for-byte", () => {
     const useCase = parseUseCaseMarkdown(readFileSync(join(import.meta.dirname, "fixtures/export/VSPEC-010-export-gherkin.md"), "utf8"));
     const expected = readFileSync(join(import.meta.dirname, "fixtures/export/VSPEC-010.feature"), "utf8");
     expect(renderGherkin(useCase)).toBe(expected);
+  });
+
+  it("prevents path traversal in output path", () => {
+    expect(() =>
+      exportGherkin({ key: "VSPEC-010", output: "../../../tmp/hacked.feature" })
+    ).toThrowError(new VspecError("INVALID_ARGUMENT", "Output path must be within the project root"));
   });
 });
