@@ -1,4 +1,10 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, resolve, sep } from "node:path";
 import { findUseCaseFile, readConfig, relativePath } from "../files.js";
 import { parseUseCaseMarkdown } from "../format/parse.js";
@@ -50,13 +56,42 @@ export function exportGherkin(args: {
   );
   const output = args.output ?? join("tests", `${args.key}.feature`);
   const outputPath = resolve(config.root, output);
-  const rootPath = resolve(config.root);
-  if (!outputPath.startsWith(rootPath + sep) && outputPath !== rootPath) {
+  const resolvedRootPath = resolve(config.root);
+  if (!isPathInside(outputPath, resolvedRootPath)) {
     throw new Error("INVALID_PATH");
   }
-  mkdirSync(dirname(outputPath), { recursive: true });
+
+  const rootPath = realpathSync(config.root);
+  const outputDir = dirname(outputPath);
+  const existingAncestor = nearestExistingAncestor(outputDir);
+  if (!isPathInside(realpathSync(existingAncestor), rootPath)) {
+    throw new Error("INVALID_PATH");
+  }
+
+  mkdirSync(outputDir, { recursive: true });
+  const realTargetPath = existsSync(outputPath)
+    ? realpathSync(outputPath)
+    : realpathSync(outputDir);
+  if (!isPathInside(realTargetPath, rootPath)) {
+    throw new Error("INVALID_PATH");
+  }
+
   writeFileSync(outputPath, text);
   return { key: args.key, text, path: relativePath(outputPath, config.root) };
+}
+
+function isPathInside(path: string, root: string): boolean {
+  return path === root || path.startsWith(root + sep);
+}
+
+function nearestExistingAncestor(path: string): string {
+  let current = path;
+  while (!existsSync(current)) {
+    const parent = dirname(current);
+    if (parent === current) return current;
+    current = parent;
+  }
+  return current;
 }
 
 function trimSentence(value: string): string {
