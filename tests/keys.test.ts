@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -8,7 +9,7 @@ describe("keys", () => {
   let root: string;
 
   beforeEach(() => {
-    root = join(tmpdir(), `vspec-keys-${crypto.randomUUID()}`);
+    root = join(tmpdir(), `vspec-keys-${randomUUID()}`);
     mkdirSync(root, { recursive: true });
   });
 
