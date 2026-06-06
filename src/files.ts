@@ -27,10 +27,9 @@ export function projectKey(start = process.cwd()): string | null {
 export function walkFiles(root: string, predicate: (path: string) => boolean): string[] {
   if (!existsSync(root)) return [];
   const files: string[] = [];
-  for (const entry of readdirSync(root)) {
-    const path = join(root, entry);
-    const stat = statSync(path);
-    if (stat.isDirectory()) files.push(...walkFiles(path, predicate));
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const path = join(root, entry.name);
+    if (entry.isDirectory()) files.push(...walkFiles(path, predicate));
     else if (predicate(path)) files.push(path);
   }
   return files.sort();
