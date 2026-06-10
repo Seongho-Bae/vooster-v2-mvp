@@ -1,0 +1,4 @@
+## 2025-02-19 - Fix Path Traversal in Gherkin Export
+**Vulnerability:** Path traversal vulnerability in `exportGherkin` command. The CLI concatenated the user-provided output path using `path.join`, allowing malicious keys like `../../../tmp/hacked.feature` or absolute paths `/tmp/hacked.feature` to traverse outside the project root and write files to arbitrary locations on the filesystem.
+**Learning:** `path.join` natively resolves `../` segments, which can escape the base directory if not validated. Node.js absolute paths completely override base directories.
+**Prevention:** Construct paths using `path.resolve`, and verify directory boundaries using `const rel = path.relative(root, target)`. Check both `rel.startsWith("..")` and `path.isAbsolute(rel)` to definitively prevent path traversal on all OS platforms.
