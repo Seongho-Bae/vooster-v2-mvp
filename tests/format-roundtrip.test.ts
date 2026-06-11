@@ -27,6 +27,8 @@ describe("use-case markdown round trip", () => {
   it.each(fixtures)("%s normalization is idempotent", (fixture) => {
     const file = readFileSync(join(fixtureDir, fixture), "utf8");
     const normalized = normalizeUseCaseMarkdown(file);
-    expect(normalizeUseCaseMarkdown(normalized), basename(fixture)).toBe(normalized);
+    expect(normalizeUseCaseMarkdown(normalized), basename(fixture)).toBe(
+      normalized,
+    );
   });
 });

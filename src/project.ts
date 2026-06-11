@@ -1,23 +1,41 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
-import { orderActorFrontmatter, orderStakeholderFrontmatter, stringifyFrontmatter } from "./format/frontmatter.js";
+import {
+  orderActorFrontmatter,
+  orderStakeholderFrontmatter,
+  stringifyFrontmatter,
+} from "./format/frontmatter.js";
 import { slugify } from "./slug.js";
 import { VspecError } from "./errors.js";
 
 export function initProject(args: { root?: string; key?: string }) {
   const root = resolve(args.root ?? process.cwd());
-  const prefix = (args.key ?? slugify(basename(root)).replace(/-/g, "_")).toUpperCase();
+  const prefix = (
+    args.key ?? slugify(basename(root)).replace(/-/g, "_")
+  ).toUpperCase();
   const affectedFiles: string[] = [];
-  for (const dir of [".vspec", "specs/actors", "specs/stakeholders", "specs/goals", "specs/usecases"]) {
+  for (const dir of [
+    ".vspec",
+    "specs/actors",
+    "specs/stakeholders",
+    "specs/goals",
+    "specs/usecases",
+  ]) {
     mkdirSync(join(root, dir), { recursive: true });
   }
 
   const configPath = join(root, ".vspec/config.json");
   if (!existsSync(configPath)) {
-    writeFileSync(configPath, `${JSON.stringify({ vspec_format: 1, key_prefix: prefix, spec_language: "ko" }, null, 2)}\n`);
+    writeFileSync(
+      configPath,
+      `${JSON.stringify({ vspec_format: 1, key_prefix: prefix, spec_language: "ko" }, null, 2)}\n`,
+    );
     affectedFiles.push(".vspec/config.json");
   } else {
-    const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<string, unknown>;
+    const config = JSON.parse(readFileSync(configPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
     // Re-init must not silently keep a different key. Renaming the prefix would
     // mean renaming every key, file, and reference, which vspec does not do — so
     // a mismatching --key is a self-teaching error, not a no-op.
@@ -28,7 +46,10 @@ export function initProject(args: { root?: string; key?: string }) {
       );
     }
     if (!config.spec_language) {
-      writeFileSync(configPath, `${JSON.stringify({ ...config, spec_language: "ko" }, null, 2)}\n`);
+      writeFileSync(
+        configPath,
+        `${JSON.stringify({ ...config, spec_language: "ko" }, null, 2)}\n`,
+      );
       affectedFiles.push(".vspec/config.json");
     }
   }
@@ -78,7 +99,8 @@ export function initProject(args: { root?: string; key?: string }) {
 
   return {
     root,
-    key_prefix: JSON.parse(readFileSync(configPath, "utf8")).key_prefix as string,
+    key_prefix: JSON.parse(readFileSync(configPath, "utf8"))
+      .key_prefix as string,
     affectedFiles,
   };
 }

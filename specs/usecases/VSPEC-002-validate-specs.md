@@ -10,6 +10,7 @@ priority: P0
 scope: vspec
 primary_actor: ai-agent
 ---
+
 # Validate specs
 
 ## Stakeholders and Interests

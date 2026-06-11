@@ -10,6 +10,7 @@ priority: P1
 scope: vspec
 primary_actor: developer
 ---
+
 # Author a minimal use case
 
 ## Stakeholders and Interests

@@ -9,11 +9,21 @@ import {
 } from "./format/frontmatter.js";
 import { parseUseCaseMarkdown } from "./format/parse.js";
 import { serializeUseCase } from "./format/serialize.js";
-import { findUseCaseFile, readConfig, relativePath, walkFiles } from "./files.js";
+import {
+  findUseCaseFile,
+  readConfig,
+  relativePath,
+  walkFiles,
+} from "./files.js";
 import { nextUseCaseKey } from "./keys.js";
 import { fileSlug, slugify } from "./slug.js";
 import { VspecError } from "./errors.js";
-import type { GoalFrontmatter, ParsedUseCase, Priority, UseCaseLevel } from "./domain/types.js";
+import type {
+  GoalFrontmatter,
+  ParsedUseCase,
+  Priority,
+  UseCaseLevel,
+} from "./domain/types.js";
 
 export function createUseCase(args: {
   title: string;
@@ -26,7 +36,10 @@ export function createUseCase(args: {
   const config = readConfig(args.cwd ?? process.cwd());
   if (!config) throw new Error("NOT_INITIALIZED");
   const { root } = config;
-  const key = nextUseCaseKey(config.config.key_prefix, join(root, "specs/usecases"));
+  const key = nextUseCaseKey(
+    config.config.key_prefix,
+    join(root, "specs/usecases"),
+  );
   const slug = fileSlug(args.title);
   if (!slug) {
     throw new VspecError(
@@ -67,32 +80,73 @@ export function createUseCase(args: {
     ],
     preconditions: [],
     trigger: `${displayName(primaryActor)}가 ${args.title} 명세 작성을 요청한다.`,
-    mainSuccess: [{ number: 1, actor: primaryActor, action: `${args.title} 요청을 제출한다.` }],
+    mainSuccess: [
+      {
+        number: 1,
+        actor: primaryActor,
+        action: `${args.title} 요청을 제출한다.`,
+      },
+    ],
     extensions: [],
-    successGuarantee: "요청한 기능의 use case 파일이 생성되고 doctor로 검증할 수 있다.",
-    minimalGuarantee: "기존 specification 파일은 명시적인 편집 없이 변경되지 않는다.",
+    successGuarantee:
+      "요청한 기능의 use case 파일이 생성되고 doctor로 검증할 수 있다.",
+    minimalGuarantee:
+      "기존 specification 파일은 명시적인 편집 없이 변경되지 않는다.",
     notes: null,
   };
   writeFileSync(path, serializeUseCase(useCase));
-  const affectedFiles = [relativePath(path, root), `specs/actors/${primaryActor}.md`];
+  const affectedFiles = [
+    relativePath(path, root),
+    `specs/actors/${primaryActor}.md`,
+  ];
   if (args.from) {
     const goalPath = findGoalFile(root, args.from);
     if (!goalPath) throw new Error("GOAL_NOT_FOUND");
     promoteGoal(goalPath, key);
     affectedFiles.push(relativePath(goalPath, root));
   }
-  return { key, path: relativePath(path, root), format: "BRIEF" as const, affectedFiles };
+  return {
+    key,
+    path: relativePath(path, root),
+    format: "BRIEF" as const,
+    affectedFiles,
+  };
 }
 
-export function listUseCases(args: { cwd?: string; status?: string; actor?: string; level?: string; q?: string }) {
+export function listUseCases(args: {
+  cwd?: string;
+  status?: string;
+  actor?: string;
+  level?: string;
+  q?: string;
+}) {
   const config = readConfig(args.cwd ?? process.cwd());
   if (!config) throw new Error("NOT_INITIALIZED");
-  return walkFiles(join(config.root, "specs/usecases"), (path) => path.endsWith(".md"))
-    .map((path) => ({ path, parsed: parseUseCaseMarkdown(readFileSync(path, "utf8")) }))
-    .filter(({ parsed }) => !args.status || parsed.frontmatter.status === args.status.toUpperCase())
-    .filter(({ parsed }) => !args.actor || parsed.frontmatter.primary_actor === slugify(args.actor!))
-    .filter(({ parsed }) => !args.level || parsed.frontmatter.level === parseLevel(args.level!))
-    .filter(({ parsed }) => !args.q || parsed.frontmatter.title.toLowerCase().includes(args.q.toLowerCase()))
+  return walkFiles(join(config.root, "specs/usecases"), (path) =>
+    path.endsWith(".md"),
+  )
+    .map((path) => ({
+      path,
+      parsed: parseUseCaseMarkdown(readFileSync(path, "utf8")),
+    }))
+    .filter(
+      ({ parsed }) =>
+        !args.status || parsed.frontmatter.status === args.status.toUpperCase(),
+    )
+    .filter(
+      ({ parsed }) =>
+        !args.actor ||
+        parsed.frontmatter.primary_actor === slugify(args.actor!),
+    )
+    .filter(
+      ({ parsed }) =>
+        !args.level || parsed.frontmatter.level === parseLevel(args.level!),
+    )
+    .filter(
+      ({ parsed }) =>
+        !args.q ||
+        parsed.frontmatter.title.toLowerCase().includes(args.q.toLowerCase()),
+    )
     .map(({ path, parsed }) => ({
       key: parsed.frontmatter.key,
       title: parsed.frontmatter.title,
@@ -107,7 +161,10 @@ export function showUseCase(args: { key: string; cwd?: string }) {
   if (!config) throw new Error("NOT_INITIALIZED");
   const path = findUseCaseFile(config.root, args.key);
   if (!path) throw new Error("KEY_NOT_FOUND");
-  return { path: relativePath(path, config.root), useCase: parseUseCaseMarkdown(readFileSync(path, "utf8")) };
+  return {
+    path: relativePath(path, config.root),
+    useCase: parseUseCaseMarkdown(readFileSync(path, "utf8")),
+  };
 }
 
 function ensureActor(root: string, name: string) {
@@ -130,25 +187,53 @@ function ensureActor(root: string, name: string) {
 }
 
 function findGoalFile(root: string, id: string): string | null {
-  return walkFiles(join(root, "specs/goals"), (path) => path.endsWith(".md")).find((path) => path.includes(`${id}-`)) ?? null;
+  return (
+    walkFiles(join(root, "specs/goals"), (path) => path.endsWith(".md")).find(
+      (path) => path.includes(`${id}-`),
+    ) ?? null
+  );
 }
 
 function promoteGoal(path: string, key: string) {
   const parsed = parseMatter(readFileSync(path, "utf8"));
-  const fm: GoalFrontmatter = { ...parseGoalFrontmatter(parsed.data), status: "PROMOTED", linked_usecase: key };
-  writeFileSync(path, stringifyFrontmatter(orderGoalFrontmatter(fm), parsed.content));
+  const fm: GoalFrontmatter = {
+    ...parseGoalFrontmatter(parsed.data),
+    status: "PROMOTED",
+    linked_usecase: key,
+  };
+  writeFileSync(
+    path,
+    stringifyFrontmatter(orderGoalFrontmatter(fm), parsed.content),
+  );
 }
 
 function parseLevel(value: string): UseCaseLevel {
   const normalized = value.toUpperCase().replace(/-/g, "_");
-  if (normalized === "SUMMARY" || normalized === "USER_GOAL" || normalized === "SUBFUNCTION") return normalized;
-  throw new VspecError("INVALID_ARGUMENT", `Invalid level "${value}". Use one of: summary, user-goal, subfunction.`);
+  if (
+    normalized === "SUMMARY" ||
+    normalized === "USER_GOAL" ||
+    normalized === "SUBFUNCTION"
+  )
+    return normalized;
+  throw new VspecError(
+    "INVALID_ARGUMENT",
+    `Invalid level "${value}". Use one of: summary, user-goal, subfunction.`,
+  );
 }
 
 function parsePriority(value: string): Priority {
   const normalized = value.toUpperCase();
-  if (normalized === "P0" || normalized === "P1" || normalized === "P2" || normalized === "P3") return normalized;
-  throw new VspecError("INVALID_ARGUMENT", `Invalid priority "${value}". Use one of: p0, p1, p2, p3.`);
+  if (
+    normalized === "P0" ||
+    normalized === "P1" ||
+    normalized === "P2" ||
+    normalized === "P3"
+  )
+    return normalized;
+  throw new VspecError(
+    "INVALID_ARGUMENT",
+    `Invalid priority "${value}". Use one of: p0, p1, p2, p3.`,
+  );
 }
 
 function displayName(slug: string): string {

@@ -24,7 +24,10 @@ if (!existsSync(built)) {
     affected_files: [],
     dry_run: false,
     suggested_next_actions: [
-      { command: "npm run build", reason: "Compile src/ to dist/ before running vspec." },
+      {
+        command: "npm run build",
+        reason: "Compile src/ to dist/ before running vspec.",
+      },
     ],
     warnings: [],
   };

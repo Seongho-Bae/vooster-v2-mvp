@@ -10,6 +10,7 @@ priority: P1
 scope: vspec
 primary_actor: ai-agent
 ---
+
 # Export to Gherkin
 
 ## Stakeholders and Interests

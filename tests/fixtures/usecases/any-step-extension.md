@@ -10,6 +10,7 @@ priority: P2
 scope: vspec
 primary_actor: developer
 ---
+
 # Recover from interruption
 
 ## Stakeholders and Interests
@@ -31,9 +32,9 @@ The agent is interrupted.
 
 ## Extensions
 
-### *a. Worktree changed during interruption
+### \*a. Worktree changed during interruption
 
-- *a1. **system** reports current status.
+- \*a1. **system** reports current status.
 - (Outcome: PARTIAL — rejoins main at step 2.)
 
 ## Success Guarantee

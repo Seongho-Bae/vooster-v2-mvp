@@ -142,9 +142,9 @@ description); only the use-case body is structured.
 - 3a2. **<Actor>** <verb phrase>.
 - (Outcome: FAILURE — use case ends.)
 
-### *a. <Any-step condition>
+### \*a. <Any-step condition>
 
-- *a1. **System** <verb phrase>.
+- \*a1. **System** <verb phrase>.
 - (Outcome: PARTIAL — rejoins main at step 4.)
 
 ## Success Guarantee
@@ -190,14 +190,18 @@ The in-memory shape a UseCase file parses into (TypeScript-ish):
 ```ts
 type ParsedUseCase = {
   frontmatter: UseCaseFrontmatter; // the zod-validated fields above
-  title: string;                   // from the H1
+  title: string; // from the H1
   blurb: string | null;
-  stakeholderInterests: { stakeholder: string; interest: string; protectionMechanism: string | null }[];
+  stakeholderInterests: {
+    stakeholder: string;
+    interest: string;
+    protectionMechanism: string | null;
+  }[];
   preconditions: string[];
   trigger: string | null;
   mainSuccess: { number: number; actor: string; action: string }[];
   extensions: {
-    point: string;                 // "3a", "*a"
+    point: string; // "3a", "*a"
     condition: string;
     steps: { id: string; actor: string; action: string }[];
     outcome: "SUCCESS" | "FAILURE" | "PARTIAL";

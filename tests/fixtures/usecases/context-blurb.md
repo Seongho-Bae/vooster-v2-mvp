@@ -10,6 +10,7 @@ priority: P2
 scope: vspec
 primary_actor: developer
 ---
+
 # Explain context before sections
 
 > This use case has a context paragraph that the parser must preserve.

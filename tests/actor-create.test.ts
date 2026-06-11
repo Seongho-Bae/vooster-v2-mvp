@@ -18,7 +18,9 @@ function setup(): string {
 }
 
 function isHuman(root: string, name: string): boolean {
-  return /^is_human: true$/m.test(readFileSync(join(root, "specs/actors", `${name}.md`), "utf8"));
+  return /^is_human: true$/m.test(
+    readFileSync(join(root, "specs/actors", `${name}.md`), "utf8"),
+  );
 }
 
 describe("actor create is_human", () => {
@@ -45,7 +47,20 @@ describe("actor create is_human", () => {
 
   it("--no-human via the CLI overrides the primary default", () => {
     const root = setup();
-    execFileSync(tsx, [cli, "actor", "create", "--name", "ext-system", "--type", "primary", "--no-human"], { cwd: root });
+    execFileSync(
+      tsx,
+      [
+        cli,
+        "actor",
+        "create",
+        "--name",
+        "ext-system",
+        "--type",
+        "primary",
+        "--no-human",
+      ],
+      { cwd: root },
+    );
     expect(isHuman(root, "ext-system")).toBe(false);
     rmSync(root, { recursive: true, force: true });
   }, 15_000);
