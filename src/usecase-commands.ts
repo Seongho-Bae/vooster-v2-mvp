@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, promises as fsPromises, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   orderActorFrontmatter,
@@ -84,11 +84,21 @@ export function createUseCase(args: {
   return { key, path: relativePath(path, root), format: "BRIEF" as const, affectedFiles };
 }
 
-export function listUseCases(args: { cwd?: string; status?: string; actor?: string; level?: string; q?: string }) {
+export async function listUseCases(args: { cwd?: string; status?: string; actor?: string; level?: string; q?: string }) {
   const config = readConfig(args.cwd ?? process.cwd());
   if (!config) throw new Error("NOT_INITIALIZED");
-  return walkFiles(join(config.root, "specs/usecases"), (path) => path.endsWith(".md"))
-    .map((path) => ({ path, parsed: parseUseCaseMarkdown(readFileSync(path, "utf8")) }))
+
+  const files = walkFiles(join(config.root, "specs/usecases"), (path) => path.endsWith(".md"));
+
+  // ⚡ Bolt: Optimize I/O by reading files concurrently
+  const items = await Promise.all(
+    files.map(async (path) => {
+      const content = await fsPromises.readFile(path, "utf8");
+      return { path, parsed: parseUseCaseMarkdown(content) };
+    })
+  );
+
+  return items
     .filter(({ parsed }) => !args.status || parsed.frontmatter.status === args.status.toUpperCase())
     .filter(({ parsed }) => !args.actor || parsed.frontmatter.primary_actor === slugify(args.actor!))
     .filter(({ parsed }) => !args.level || parsed.frontmatter.level === parseLevel(args.level!))
