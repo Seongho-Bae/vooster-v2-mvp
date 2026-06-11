@@ -1,8 +1,9 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve, isAbsolute, relative } from "node:path";
 import { findUseCaseFile, readConfig, relativePath } from "../files.js";
 import { parseUseCaseMarkdown } from "../format/parse.js";
 import type { ParsedUseCase } from "../domain/types.js";
+import { VspecError } from "../errors.js";
 
 export function renderGherkin(useCase: ParsedUseCase): string {
   const lines: string[] = [
@@ -35,11 +36,20 @@ export function renderGherkin(useCase: ParsedUseCase): string {
 export function exportGherkin(args: { key: string; output?: string; cwd?: string }) {
   const config = readConfig(args.cwd ?? process.cwd());
   if (!config) throw new Error("NOT_INITIALIZED");
+
+  const output = args.output ?? join("tests", `${args.key}.feature`);
+  const outputPath = resolve(config.root, output);
+
+  // Security: prevent path traversal outside project root
+  const rel = relative(config.root, outputPath);
+  if (rel.startsWith("..") || isAbsolute(rel)) {
+    throw new VspecError("INVALID_ARGUMENT", "Output path must be within the project root");
+  }
+
   const source = findUseCaseFile(config.root, args.key);
   if (!source) throw new Error("KEY_NOT_FOUND");
   const text = renderGherkin(parseUseCaseMarkdown(readFileSync(source, "utf8")));
-  const output = args.output ?? join("tests", `${args.key}.feature`);
-  const outputPath = join(config.root, output);
+
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, text);
   return { key: args.key, text, path: relativePath(outputPath, config.root) };
