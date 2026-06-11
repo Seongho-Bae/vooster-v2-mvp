@@ -1,0 +1,4 @@
+## 2025-02-14 - Fix path traversal vulnerability in exportGherkin
+**Vulnerability:** Path traversal existed in `src/export/gherkin.ts` where `exportGherkin` command resolved user-provided output paths relative to `config.root` without validating if the resolved path was still within the project root. This allowed overwriting arbitrary files (e.g. `../../../../tmp/hacked.txt`).
+**Learning:** `path.join` and standard absolute path assumptions do not prevent directory climbing vulnerabilities (e.g., `../`). Even in a local-first CLI tool, writing user-controlled outputs requires validating that resolved paths stay within the application boundaries.
+**Prevention:** Always construct absolute file paths using `path.resolve` and verify path boundaries using `path.relative`. The relative path from the root must not start with `..` and must not be absolute.
