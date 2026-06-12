@@ -1,7 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, relative, resolve, isAbsolute } from "node:path";
 import { findUseCaseFile, readConfig, relativePath } from "../files.js";
 import { parseUseCaseMarkdown } from "../format/parse.js";
+import { VspecError } from "../errors.js";
 import type { ParsedUseCase } from "../domain/types.js";
 
 export function renderGherkin(useCase: ParsedUseCase): string {
@@ -39,7 +40,13 @@ export function exportGherkin(args: { key: string; output?: string; cwd?: string
   if (!source) throw new Error("KEY_NOT_FOUND");
   const text = renderGherkin(parseUseCaseMarkdown(readFileSync(source, "utf8")));
   const output = args.output ?? join("tests", `${args.key}.feature`);
-  const outputPath = join(config.root, output);
+  const outputPath = resolve(config.root, output);
+
+  const rel = relative(config.root, outputPath);
+  if (rel.startsWith("..") || isAbsolute(rel)) {
+    throw new VspecError("INVALID_ARGUMENT", "Output path must be inside the project root.");
+  }
+
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, text);
   return { key: args.key, text, path: relativePath(outputPath, config.root) };

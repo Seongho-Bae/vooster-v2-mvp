@@ -1,0 +1,4 @@
+## 2025-06-12 - Prevent Path Traversal in Export Output Path
+**Vulnerability:** The `exportGherkin` command allowed specifying absolute paths or relative paths with traversal payloads (`../`) via the `--output` argument, writing generated files outside the isolated project root directory (`config.root`).
+**Learning:** `path.join` normalizes paths but does not restrict them to a specific boundary, allowing arbitrary writes on the filesystem wherever the agent/user has permissions.
+**Prevention:** Construct absolute paths using `path.resolve(root, target)` and enforce boundaries by confirming the target is within bounds utilizing `const rel = path.relative(root, target)` combined with `rel.startsWith("..")` and `path.isAbsolute(rel)`. Use dedicated errors like `INVALID_ARGUMENT` within the CLI to surface machine-parseable constraints rather than leaking stack traces.
